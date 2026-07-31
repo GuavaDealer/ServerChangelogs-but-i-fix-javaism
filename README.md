@@ -53,7 +53,7 @@ The plugin provides a few commands, to which access can be controlled using the 
   <tr>
     <td><code>/scl create</code></td>
     <td>server_changelogs.command.create</td>
-    <td>Opens the UI to publish a new changelog/td>
+    <td>Opens the UI to publish a new changelog</td>
   </tr>
   <tr>
     <td><code>/scl view</code></td>
@@ -86,7 +86,7 @@ Out of the box, the plugin currently only supports **american english** (`en_US`
 The plugin registers a few custom **MiniMessage Tags** you can use in any of the translations, including:
 - `<prefix>`: The plugin prefix defined in the `prefix` translation
 - `<plugin:name>`: The (internally defined) name of the plugin
-- `<plugin:description>`: The (internally defiend) plugin description
+- `<plugin:description>`: The (internally defined) plugin description
 - `<plugin:version>`: The currently running version of the plugin
 - `<plugin:authors>`: A comma-separated list of plugin authors
 - `<translate:your.key.here>`: Allows you to include values of other translations in another translations. Unlike MM's `<lang>` tag, this is specifically made to work with the plugin's translations! Note that this **does not** support arguments as of now.
