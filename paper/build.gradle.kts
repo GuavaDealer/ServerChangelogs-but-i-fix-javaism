@@ -2,7 +2,6 @@ plugins {
     id("java-library")
     id("xyz.jpenilla.run-paper") version "3.0.2"
     id("xyz.jpenilla.resource-factory-paper-convention") version "1.3.1"
-    id("io.freefair.lombok") version "9.5.0"
 }
 
 repositories {
@@ -11,11 +10,12 @@ repositories {
 }
 
 dependencies {
+    implementation(project(":base"))
     compileOnly("io.papermc.paper:paper-api:26.1.2.build.+")
 }
 
 paperPluginYaml {
-    main = "${group}.changelogs.ServerChangelogs"
+    main = "${group}.changelogs.paper.PaperChangelogsPlugin"
     apiVersion = "26.1"
 
     authors.addAll("codingcat2468")

@@ -1,6 +1,6 @@
-package com.codingcat.changelogs.lang;
+package com.codingcat.changelogs.base.lang;
 
-import com.codingcat.changelogs.ServerChangelogs;
+import com.codingcat.changelogs.base.ServerChangelogs;
 import io.papermc.paper.plugin.configuration.PluginMeta;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.key.Key;

@@ -1,6 +1,6 @@
-package com.codingcat.changelogs.dialog;
+package com.codingcat.changelogs.base.dialog;
 
-import com.codingcat.changelogs.ServerChangelogs;
+import com.codingcat.changelogs.base.ServerChangelogs;
 import io.papermc.paper.dialog.Dialog;
 import io.papermc.paper.dialog.DialogResponseView;
 import io.papermc.paper.registry.data.dialog.action.DialogAction;
@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.codingcat.changelogs.ServerChangelogs.error;
+import static com.codingcat.changelogs.base.ServerChangelogs.error;
 
 public interface IDialog {
     @NotNull Dialog build(@NotNull Player player);

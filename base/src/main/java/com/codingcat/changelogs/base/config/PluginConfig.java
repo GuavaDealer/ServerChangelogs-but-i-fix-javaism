@@ -1,7 +1,7 @@
-package com.codingcat.changelogs.config;
+package com.codingcat.changelogs.base.config;
 
-import com.codingcat.changelogs.ServerChangelogs;
-import com.codingcat.changelogs.data.ChangelogStorage;
+import com.codingcat.changelogs.base.ServerChangelogs;
+import com.codingcat.changelogs.base.data.ChangelogStorage;
 import io.papermc.paper.registry.RegistryAccess;
 import io.papermc.paper.registry.RegistryKey;
 import lombok.RequiredArgsConstructor;

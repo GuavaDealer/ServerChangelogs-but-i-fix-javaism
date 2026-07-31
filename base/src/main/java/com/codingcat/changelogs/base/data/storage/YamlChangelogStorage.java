@@ -1,7 +1,7 @@
-package com.codingcat.changelogs.data.storage;
+package com.codingcat.changelogs.base.data.storage;
 
-import com.codingcat.changelogs.data.ChangelogEntry;
-import com.codingcat.changelogs.data.ChangelogStorage;
+import com.codingcat.changelogs.base.data.ChangelogEntry;
+import com.codingcat.changelogs.base.data.ChangelogStorage;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;

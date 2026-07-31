@@ -1,4 +1,4 @@
-package com.codingcat.changelogs.data;
+package com.codingcat.changelogs.base.data;
 
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;

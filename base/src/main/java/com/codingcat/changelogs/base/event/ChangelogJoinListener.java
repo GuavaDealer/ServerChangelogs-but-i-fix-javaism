@@ -1,8 +1,8 @@
-package com.codingcat.changelogs.event;
+package com.codingcat.changelogs.base.event;
 
-import com.codingcat.changelogs.data.ChangelogStorage;
-import com.codingcat.changelogs.dialog.ChangelogDialog;
-import com.codingcat.changelogs.dialog.IDialog;
+import com.codingcat.changelogs.base.data.ChangelogStorage;
+import com.codingcat.changelogs.base.dialog.ChangelogDialog;
+import com.codingcat.changelogs.base.dialog.IDialog;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;

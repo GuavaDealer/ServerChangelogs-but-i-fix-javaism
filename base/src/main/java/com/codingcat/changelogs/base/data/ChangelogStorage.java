@@ -1,7 +1,7 @@
-package com.codingcat.changelogs.data;
+package com.codingcat.changelogs.base.data;
 
-import com.codingcat.changelogs.ServerChangelogs;
-import com.codingcat.changelogs.data.storage.YamlChangelogStorage;
+import com.codingcat.changelogs.base.ServerChangelogs;
+import com.codingcat.changelogs.base.data.storage.YamlChangelogStorage;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

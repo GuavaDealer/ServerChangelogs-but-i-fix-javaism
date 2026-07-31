@@ -1,13 +1,13 @@
-package com.codingcat.changelogs;
+package com.codingcat.changelogs.base;
 
-import com.codingcat.changelogs.command.BrigadierCommandNode;
-import com.codingcat.changelogs.command.DialogSubCommands;
-import com.codingcat.changelogs.config.PluginConfig;
-import com.codingcat.changelogs.data.ChangelogStorage;
-import com.codingcat.changelogs.dialog.IDialog;
-import com.codingcat.changelogs.event.ChangelogJoinListener;
-import com.codingcat.changelogs.lang.TranslationSource;
-import com.codingcat.changelogs.util.ResourceUtil;
+import com.codingcat.changelogs.base.command.BrigadierCommandNode;
+import com.codingcat.changelogs.base.command.DialogSubCommands;
+import com.codingcat.changelogs.base.config.PluginConfig;
+import com.codingcat.changelogs.base.data.ChangelogStorage;
+import com.codingcat.changelogs.base.dialog.IDialog;
+import com.codingcat.changelogs.base.event.ChangelogJoinListener;
+import com.codingcat.changelogs.base.lang.TranslationSource;
+import com.codingcat.changelogs.base.util.ResourceUtil;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
@@ -33,8 +33,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 
-import static com.codingcat.changelogs.command.BrigadierCommandNode.requirePermission;
-import static com.codingcat.changelogs.lang.TranslationSource.translatable;
+import static com.codingcat.changelogs.base.command.BrigadierCommandNode.requirePermission;
+import static com.codingcat.changelogs.base.lang.TranslationSource.translatable;
 import static net.kyori.adventure.text.Component.text;
 
 public final class ServerChangelogs extends JavaPlugin {

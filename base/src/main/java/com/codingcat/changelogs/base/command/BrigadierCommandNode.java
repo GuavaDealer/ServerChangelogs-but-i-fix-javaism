@@ -1,6 +1,6 @@
-package com.codingcat.changelogs.command;
+package com.codingcat.changelogs.base.command;
 
-import com.codingcat.changelogs.ServerChangelogs;
+import com.codingcat.changelogs.base.ServerChangelogs;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import org.jetbrains.annotations.NotNull;

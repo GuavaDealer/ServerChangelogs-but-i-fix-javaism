@@ -1,8 +1,8 @@
-package com.codingcat.changelogs.dialog;
+package com.codingcat.changelogs.base.dialog;
 
-import com.codingcat.changelogs.ServerChangelogs;
-import com.codingcat.changelogs.data.ChangelogEntry;
-import com.codingcat.changelogs.data.ChangelogStorage;
+import com.codingcat.changelogs.base.ServerChangelogs;
+import com.codingcat.changelogs.base.data.ChangelogEntry;
+import com.codingcat.changelogs.base.data.ChangelogStorage;
 import io.papermc.paper.dialog.Dialog;
 import io.papermc.paper.dialog.DialogResponseView;
 import io.papermc.paper.registry.data.dialog.ActionButton;
@@ -24,8 +24,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
-import static com.codingcat.changelogs.lang.TranslationSource.translatable;
-import static com.codingcat.changelogs.lang.TranslationSource.translatableManual;
+import static com.codingcat.changelogs.base.lang.TranslationSource.translatable;
+import static com.codingcat.changelogs.base.lang.TranslationSource.translatableManual;
 import static net.kyori.adventure.text.Component.text;
 
 @RequiredArgsConstructor

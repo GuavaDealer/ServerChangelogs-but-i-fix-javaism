@@ -1,9 +1,9 @@
-package com.codingcat.changelogs.command;
+package com.codingcat.changelogs.base.command;
 
-import com.codingcat.changelogs.ServerChangelogs;
-import com.codingcat.changelogs.dialog.ChangelogDialog;
-import com.codingcat.changelogs.dialog.CreateChangelogDialog;
-import com.codingcat.changelogs.dialog.IDialog;
+import com.codingcat.changelogs.base.ServerChangelogs;
+import com.codingcat.changelogs.base.dialog.ChangelogDialog;
+import com.codingcat.changelogs.base.dialog.CreateChangelogDialog;
+import com.codingcat.changelogs.base.dialog.IDialog;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import lombok.AccessLevel;
@@ -15,7 +15,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.codingcat.changelogs.lang.TranslationSource.translatable;
+import static com.codingcat.changelogs.base.lang.TranslationSource.translatable;
 import static io.papermc.paper.command.brigadier.Commands.literal;
 
 public class DialogSubCommands {

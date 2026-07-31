@@ -1,4 +1,4 @@
-package com.codingcat.changelogs.util;
+package com.codingcat.changelogs.base.util;
 
 import org.jetbrains.annotations.NotNull;
 
