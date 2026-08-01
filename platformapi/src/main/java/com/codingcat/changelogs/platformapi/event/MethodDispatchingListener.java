@@ -30,7 +30,7 @@ public interface MethodDispatchingListener {
                 @Override
                 public void accept(IEvent iEvent) {
                     try {
-                        method.invoke(this, iEvent);
+                        method.invoke(MethodDispatchingListener.this, iEvent);
                     } catch (IllegalAccessException | InvocationTargetException e) {
                         throw new RuntimeException("Failed to invoke method dispatching listener method " + method + " for event " + iEvent, e);
                     }
