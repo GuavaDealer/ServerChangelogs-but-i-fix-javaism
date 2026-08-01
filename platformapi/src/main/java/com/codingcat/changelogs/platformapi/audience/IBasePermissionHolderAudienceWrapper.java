@@ -1,11 +1,12 @@
 package com.codingcat.changelogs.platformapi.audience;
 
+import com.codingcat.changelogs.platformapi.IWrapper;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.permission.PermissionChecker;
 import net.kyori.adventure.util.TriState;
 import org.jetbrains.annotations.NotNull;
 
-public interface IBasePermissionHolderAudienceWrapper {
+public interface IBasePermissionHolderAudienceWrapper extends IWrapper {
     @NotNull Audience asAudience();
 
     @NotNull PermissionChecker asPermissionChecker();

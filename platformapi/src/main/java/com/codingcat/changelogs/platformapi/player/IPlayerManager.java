@@ -12,4 +12,6 @@ public interface IPlayerManager {
     @Nullable IPlayer getFromUUID(@NotNull UUID uuid);
 
     @Nullable IPlayer getFromName(@NotNull String name);
+
+    @NotNull IPlayer fromNative(@NotNull Object nativePlayer) throws IllegalArgumentException;
 }

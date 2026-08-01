@@ -4,6 +4,7 @@ import com.codingcat.changelogs.platformapi.command.ICommandManager;
 import com.codingcat.changelogs.platformapi.event.IEventManager;
 import com.codingcat.changelogs.platformapi.meta.ChangelogsMeta;
 import com.codingcat.changelogs.platformapi.meta.PlatformMeta;
+import com.codingcat.changelogs.platformapi.player.IPlayerManager;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jetbrains.annotations.NotNull;
 
@@ -13,6 +14,8 @@ public interface ChangelogsPlatform {
     @NotNull ComponentLogger getLogger();
 
     @NotNull Path getDataPath();
+
+    @NotNull IPlayerManager getPlayerManager();
 
     @NotNull IEventManager getEventManager();
 
