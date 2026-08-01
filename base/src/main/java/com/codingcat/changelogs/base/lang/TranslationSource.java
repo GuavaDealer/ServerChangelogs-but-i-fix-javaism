@@ -2,6 +2,7 @@ package com.codingcat.changelogs.base.lang;
 
 import com.codingcat.changelogs.base.ServerChangelogs;
 import com.codingcat.changelogs.platformapi.meta.ChangelogsMeta;
+import com.codingcat.changelogs.platformapi.meta.PlatformMeta;
 import com.codingcat.changelogs.platformapi.player.IPlayer;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.key.Key;
@@ -33,6 +34,7 @@ import static net.kyori.adventure.text.Component.text;
 public final class TranslationSource {
     private final @NotNull Path sourceDirectory;
     private final @NotNull ChangelogsMeta changelogsMeta;
+    private final @NotNull PlatformMeta platformMeta;
     private final @NotNull ComponentLogger logger;
     private final Key storeKey = ServerChangelogs.KEY_GENERATOR.apply("translations");
     private final MiniMessage miniMessage = MiniMessage.builder()
@@ -131,6 +133,15 @@ public final class TranslationSource {
                         default -> throw context.newException("Invalid argument \"" + property + "\"", args);
                     };
                     return Tag.selfClosingInserting(value != null ? text(value) : translatable("meta.unknown"));
+                })
+                .tag("platform", (args, context) -> {
+                    String property = args.popOr("Missing argument for tag \"platform\"").lowerValue();
+                    Component value = switch (property) {
+                        case "name" -> platformMeta.getName();
+                        case "version" -> text(platformMeta.getVersion());
+                        default -> throw context.newException("Invalid argument \"" + property + "\"", args);
+                    };
+                    return Tag.selfClosingInserting(value);
                 }).build();
     }
 

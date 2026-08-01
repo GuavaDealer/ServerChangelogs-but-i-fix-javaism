@@ -67,7 +67,7 @@ public final class ServerChangelogs extends Entrypoint {
                 }
             });
         }
-        this.translationSource = new TranslationSource(translationPath, getPlatform().getChangelogsMeta(), logger);
+        this.translationSource = new TranslationSource(translationPath, getPlatform().getChangelogsMeta(), getPlatform().getPlatformMeta(), logger);
         this.translationSource.reload();
         info("console.startup");
         Path configPath = getPlatform().getDataPath().resolve("config.yml");
