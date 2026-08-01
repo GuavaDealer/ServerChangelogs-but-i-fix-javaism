@@ -3,16 +3,25 @@ package com.codingcat.changelogs.base.dialog;
 import com.codingcat.changelogs.base.ServerChangelogs;
 import com.codingcat.changelogs.platformapi.player.IPlayer;
 import com.codingcat.changelogs.platformapi.player.IPlayerManager;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.event.PacketListener;
+import com.github.retrooper.packetevents.event.PacketListenerCommon;
+import com.github.retrooper.packetevents.event.PacketListenerPriority;
+import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.chat.clickevent.CustomClickEvent;
 import com.github.retrooper.packetevents.protocol.dialog.action.Action;
 import com.github.retrooper.packetevents.protocol.dialog.action.DynamicCustomAction;
 import com.github.retrooper.packetevents.protocol.dialog.action.StaticAction;
 import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
+import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.resources.ResourceLocation;
+import com.github.retrooper.packetevents.wrapper.common.client.WrapperCommonClientCustomClickAction;
+import com.github.retrooper.packetevents.wrapper.configuration.client.WrapperConfigClientCustomClickAction;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientCustomClickAction;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.key.Key;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 import java.util.Set;
@@ -21,20 +30,21 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 @RequiredArgsConstructor
-public class DialogSessionManager {
+public class DialogSessionManager implements PacketListener {
     private static final @NotNull Function<String, Key> KEY_GENERATOR = path -> ServerChangelogs.KEY_GENERATOR.apply("dialog/" + path);
     private final Set<Key> staticActions = ConcurrentHashMap.newKeySet();
     private final Map<UUID, String> activeSessions = new ConcurrentHashMap<>();
     private final Map<UUID, Object> sessionData = new ConcurrentHashMap<>();
     private final @NotNull IDialog.Holder dialogHolder;
     private final @NotNull IPlayerManager playerManager;
+    private @Nullable PacketListenerCommon selfListener;
 
-    public void handleCustomClick(@NotNull WrapperPlayClientCustomClickAction packetWrapper, @NotNull Object source) {
+    public void handleCustomClick(@NotNull WrapperCommonClientCustomClickAction<?> packetWrapper, @NotNull Object source) {
         Key key = packetWrapper.getId().key();
         int fSIdx, lSIdx;
         if (!key.namespace().equals(ServerChangelogs.NAMESPACE) || (fSIdx = key.value().indexOf('/')) == -1
-                || !key.value().startsWith("dialog/") || (fSIdx + 1) < (lSIdx = key.value().lastIndexOf('/'))
-                || lSIdx != (key.value().length() - 1)) return;
+                || !key.value().startsWith("dialog/") || (fSIdx + 1) >= (lSIdx = key.value().lastIndexOf('/'))
+                || lSIdx == (key.value().length() - 1)) return;
         IPlayer player = this.playerManager.fromNative(source);
         String dialogId = key.value().substring(fSIdx + 1, lSIdx);
         String actionId = key.value().substring(lSIdx + 1);
@@ -50,6 +60,23 @@ public class DialogSessionManager {
         } catch (Exception e) {
             throw new RuntimeException("Failed to run dialog action handler for \"" + dialogId + "\"", e);
         }
+    }
+
+    @Override
+    public void onPacketReceive(@NotNull PacketReceiveEvent event) {
+        if (event.getPacketType() == PacketType.Play.Client.CUSTOM_CLICK_ACTION)
+            handleCustomClick(new WrapperPlayClientCustomClickAction(event), event.getPlayer());
+        if (event.getPacketType() == PacketType.Configuration.Client.CUSTOM_CLICK_ACTION)
+            handleCustomClick(new WrapperConfigClientCustomClickAction(event), event.getPlayer());
+    }
+
+    public void registerEvents() {
+        this.selfListener = PacketEvents.getAPI().getEventManager().registerListener(this, PacketListenerPriority.NORMAL);
+    }
+
+    public void unregisterEvents() {
+        PacketEvents.getAPI().getEventManager().unregisterListener(this.selfListener);
+        this.selfListener = null;
     }
 
     public @NotNull Action createStatic(@NotNull IDialog dialog, @NotNull String id) {

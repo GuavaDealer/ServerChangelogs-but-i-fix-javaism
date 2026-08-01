@@ -88,6 +88,7 @@ public final class ServerChangelogs extends Entrypoint {
         this.dialogHolder = new IDialog.Holder(this);
         this.dialogHolder.recreate();
         this.dialogSessionManager = new DialogSessionManager(this.dialogHolder, getPlatform().getPlayerManager());
+        this.dialogSessionManager.registerEvents();
         getPlatform().getEventManager().registerMethodDispatcher(new ChangelogJoinListener(this::getChangelogStorage, dialogHolder, dialogSessionManager));
         this.registerCommands(getPlatform().getCommandManager());
     }
@@ -121,6 +122,8 @@ public final class ServerChangelogs extends Entrypoint {
     @Override
     public void onShutdown() {
         info("console.shutdown");
+        if (this.dialogSessionManager != null) this.dialogSessionManager.unregisterEvents();
+        if (this.changelogStorage != null) this.changelogStorage.shutdown();
     }
 
     public @NotNull PluginConfig pluginConfig() {
