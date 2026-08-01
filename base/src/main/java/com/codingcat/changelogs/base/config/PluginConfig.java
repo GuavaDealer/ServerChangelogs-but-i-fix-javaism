@@ -8,36 +8,40 @@ import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.key.InvalidKeyException;
 import net.kyori.adventure.key.Key;
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ItemType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.error.YAMLException;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 @RequiredArgsConstructor
-public class PluginConfig extends YamlConfiguration {
+public class PluginConfig extends Yaml {
     private final @NotNull ServerChangelogs plugin;
     private final @NotNull Path path;
+    private @NotNull Map<String, Object> data = new HashMap<>();
 
     public void tryReload() {
         try {
             this.reload();
-        } catch (IOException | InvalidConfigurationException e) {
+        } catch (IOException | YAMLException e) {
             throw new RuntimeException("Failed to reload configuration", e);
         }
         String err = this.validate();
         if (err != null) throw new RuntimeException("Configuration invalid: " + err);
     }
 
-    public void reload() throws IOException, InvalidConfigurationException {
-        this.load(this.path.toFile());
+    public void reload() throws IOException, YAMLException {
+        this.data = this.load(new FileInputStream(this.path.toFile()));
     }
 
     public @Nullable String validate() {
@@ -69,8 +73,16 @@ public class PluginConfig extends YamlConfiguration {
     }
 
     public @Nullable ItemStack createChangelogHeaderStack() {
-        String value = getString("dialog_header_item");
+        String value = getString("dialog_header_item", null);
         return value != null ? createStack(value) : null;
+    }
+
+    private String getString(@NotNull String key, @Nullable String defaultValue) {
+        return (String) this.data.getOrDefault(key, defaultValue);
+    }
+
+    private boolean getBoolean(@NotNull String key, boolean defaultValue) {
+        return (boolean) this.data.getOrDefault(key, defaultValue);
     }
 
     @SuppressWarnings("PatternValidation")

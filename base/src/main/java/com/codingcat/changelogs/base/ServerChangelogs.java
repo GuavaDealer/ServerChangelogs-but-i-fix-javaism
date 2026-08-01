@@ -1,7 +1,5 @@
 package com.codingcat.changelogs.base;
 
-import com.codingcat.changelogs.platformapi.ChangelogsPlatform;
-import com.codingcat.changelogs.platformapi.Entrypoint;
 import com.codingcat.changelogs.base.command.BrigadierCommandNode;
 import com.codingcat.changelogs.base.command.DialogSubCommands;
 import com.codingcat.changelogs.base.config.PluginConfig;
@@ -10,6 +8,8 @@ import com.codingcat.changelogs.base.dialog.IDialog;
 import com.codingcat.changelogs.base.event.ChangelogJoinListener;
 import com.codingcat.changelogs.base.lang.TranslationSource;
 import com.codingcat.changelogs.base.util.ResourceUtil;
+import com.codingcat.changelogs.platformapi.ChangelogsPlatform;
+import com.codingcat.changelogs.platformapi.Entrypoint;
 import com.codingcat.changelogs.platformapi.command.ICommandManager;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.tree.LiteralCommandNode;
@@ -19,8 +19,8 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import net.kyori.adventure.translation.GlobalTranslator;
-import org.bukkit.configuration.InvalidConfigurationException;
 import org.jetbrains.annotations.NotNull;
+import org.yaml.snakeyaml.error.YAMLException;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -102,12 +102,12 @@ public final class ServerChangelogs extends Entrypoint {
             commandManager.register(DialogSubCommands.buildDedicatedChangelogCommand(this));
     }
 
-    public void reload() throws IOException, InvalidConfigurationException {
+    public void reload() throws IOException, YAMLException {
         info("console.reload");
         this.translationSource.reload();
         this.config.reload();
         String err = this.config.validate();
-        if (err != null) throw new InvalidConfigurationException(err);
+        if (err != null) throw new YAMLException(err);
         this.changelogStorage.shutdown();
         this.changelogStorage = this.config.createChangelogStorage();
         info("console.startup_storage", text(this.changelogStorage.getDisplayName()));

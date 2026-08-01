@@ -5,11 +5,11 @@ import com.codingcat.changelogs.base.data.ChangelogStorage;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
-import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.error.YAMLException;
 
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
@@ -29,10 +29,10 @@ public class YamlChangelogStorage implements ChangelogStorage {
             return;
         }
         try {
-            YamlConfiguration config = new YamlConfiguration();
-            config.load(filePath.toFile());
-            this.cache = this.deserializeEntries(config);
-        } catch (IOException | InvalidConfigurationException e) {
+            Yaml config = new Yaml();
+            Map<String, Object> data = config.load(new FileInputStream(filePath.toFile()));
+            this.cache = this.deserializeEntries(data);
+        } catch (IOException | YAMLException e) {
             throw new RuntimeException("Failed to load changelog data from " + filePath, e);
         }
     }
@@ -58,21 +58,21 @@ public class YamlChangelogStorage implements ChangelogStorage {
     }
 
     private void save() {
-        YamlConfiguration config = new YamlConfiguration();
+        Yaml config = new Yaml();
         List<Map<String, Object>> data = this.cache.stream()
                 .map(this::serializeEntry)
                 .toList();
-        config.set("entries", data);
-        try {
-            config.save(filePath.toFile());
+        try (FileOutputStream os = new FileOutputStream(filePath.toFile())) {
+            config.dump(Map.of("entries", data), new BufferedWriter(new OutputStreamWriter(os)));
         } catch (IOException e) {
             throw new RuntimeException("Failed to save changelog data to " + filePath, e);
         }
     }
 
-    private @NotNull List<ChangelogEntry> deserializeEntries(@NotNull YamlConfiguration config) {
+    private @NotNull List<ChangelogEntry> deserializeEntries(@NotNull Map<String, Object> config) {
         try {
-            List<Map<?, ?>> entries = config.getMapList("entries");
+            //noinspection unchecked
+            List<Map<?, ?>> entries = (List<Map<?, ?>>) config.get("entries");
             Objects.requireNonNull(entries, "entries");
             List<ChangelogEntry> results = new ArrayList<>();
             for (int i = 0; i < entries.size(); i++) {

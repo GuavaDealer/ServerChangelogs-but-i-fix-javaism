@@ -3,7 +3,6 @@ package com.codingcat.changelogs.base.lang;
 import com.codingcat.changelogs.base.ServerChangelogs;
 import com.codingcat.changelogs.platformapi.meta.ChangelogsMeta;
 import com.codingcat.changelogs.platformapi.player.IPlayer;
-import io.papermc.paper.plugin.configuration.PluginMeta;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
@@ -16,14 +15,14 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.text.minimessage.translation.MiniMessageTranslationStore;
 import net.kyori.adventure.translation.GlobalTranslator;
 import net.kyori.adventure.translation.TranslationStore;
-import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.error.YAMLException;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
@@ -94,18 +93,15 @@ public final class TranslationSource {
             logger.warn("Failed to find language file {}, skipping language!", fileName);
             return null;
         }
-        YamlConfiguration langFile = new YamlConfiguration();
+        Yaml langFile = new Yaml();
         try {
-            langFile.load(file);
-            //noinspection DataFlowIssue
-            return langFile.getKeys(true)
+            Map<String, Object> data = langFile.load(new FileInputStream(file));
+            return data.entrySet()
                     .stream()
-                    .filter(langFile::contains)
-                    .filter(k -> !langFile.isConfigurationSection(k))
-                    .collect(Collectors.toUnmodifiableMap(k -> ServerChangelogs.NAMESPACE + "." + k, langFile::getString));
+                    .collect(Collectors.toUnmodifiableMap(e -> ServerChangelogs.NAMESPACE + "." + e.getKey(), e -> e.getValue().toString()));
         } catch (IOException e) {
             logger.warn("Failed to load language file {} due to I/O errors:", fileName, e);
-        } catch (InvalidConfigurationException e) {
+        } catch (YAMLException e) {
             logger.warn("Invalid syntax in language file {}:", fileName, e);
         }
         return null;

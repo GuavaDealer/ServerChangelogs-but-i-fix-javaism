@@ -6,13 +6,13 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
-import org.bukkit.configuration.InvalidConfigurationException;
 import org.jetbrains.annotations.NotNull;
+import org.yaml.snakeyaml.error.YAMLException;
 
 import java.io.IOException;
 
-import static com.codingcat.changelogs.base.lang.TranslationSource.translatable;
 import static com.codingcat.changelogs.base.ServerChangelogs.error;
+import static com.codingcat.changelogs.base.lang.TranslationSource.translatable;
 import static com.mojang.brigadier.builder.LiteralArgumentBuilder.literal;
 import static net.kyori.adventure.text.Component.text;
 
@@ -33,7 +33,7 @@ public class ReloadSubCommand implements BrigadierCommandNode {
                     } catch (IOException e) {
                         errorMsg = translatable("command.reload.error.io");
                         error("command.reload.error.details", e);
-                    } catch (InvalidConfigurationException e) {
+                    } catch (YAMLException e) {
                         errorMsg = translatable("command.reload.error.invalid", text(e.getMessage()));
                     }
                     if (errorMsg != null) audience.sendMessage(errorMsg);
