@@ -22,27 +22,28 @@ import static com.mojang.brigadier.builder.LiteralArgumentBuilder.literal;
 public class DialogSubCommands {
     public static @NotNull Set<BrigadierCommandNode> withDialogs(@NotNull BrigadierCommandNode... commands) {
         Set<BrigadierCommandNode> commandSet = new HashSet<>();
-        commandSet.add(new Command("create", "command.create", CreateChangelogDialog.class));
-        commandSet.add(new Command("view", "command.view", ChangelogDialog.class));
+        commandSet.add(new Command("create", "command.create", false, CreateChangelogDialog.class));
+        commandSet.add(new Command("view", "command.view", true, ChangelogDialog.class));
         commandSet.addAll(Arrays.stream(commands).toList());
         return commandSet;
     }
 
     public static @NotNull LiteralCommandNode<?> buildDedicatedChangelogCommand(@NotNull ServerChangelogs plugin) {
-        return new Command("changelog", "dedicated_command", ChangelogDialog.class).build(plugin);
+        return new Command("changelog", "dedicated_command", true, ChangelogDialog.class).build(plugin);
     }
 
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     private static class Command implements BrigadierCommandNode {
         private final @NotNull String name;
         private final @NotNull String permission;
+        private final boolean permissionEnabledByDefault;
         private final @NotNull Class<? extends IDialog> dialogCls;
 
         @Override
         public @NotNull LiteralCommandNode<Object> build(@NotNull ServerChangelogs plugin) {
             ICommandManager commandManager = plugin.getPlatform().getCommandManager();
             return literal(this.name)
-                    .requires(BrigadierCommandNode.requirePermission(this.permission, commandManager, false))
+                    .requires(BrigadierCommandNode.requirePermission(this.permission, commandManager, permissionEnabledByDefault))
                     .executes(ctx -> {
                         ICommandSource source = commandManager.adaptPlatformSource(ctx.getSource());
                         if (source.getExecutingPlayer() == null) {
