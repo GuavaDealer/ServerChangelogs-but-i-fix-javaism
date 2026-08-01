@@ -39,6 +39,7 @@ import static net.kyori.adventure.text.Component.text;
 public class CreateChangelogDialog implements IDialog {
     private final @Getter String id = "changelog_editor";
     private final @NotNull ChangelogStorage storage;
+    private final boolean useFallbackPermissions;
 
     @Override
     public @NotNull Dialog build(@NotNull IPlayer p, @NotNull DialogSessionManager sessionManager) {
@@ -72,7 +73,7 @@ public class CreateChangelogDialog implements IDialog {
         }
         if (!action.equals("publish")) return;
         sessionManager.endSession(source);
-        if (!source.hasPermission(ServerChangelogs.NAMESPACE + ".command.create")) {
+        if ((useFallbackPermissions && !source.isNativeAdmin().toBooleanOrElse(false)) || (!useFallbackPermissions && !source.hasPermission(ServerChangelogs.NAMESPACE + ".command.create"))) {
             source.asAudience().sendMessage(translatable("dialog.create.error.no_permission"));
             return;
         }

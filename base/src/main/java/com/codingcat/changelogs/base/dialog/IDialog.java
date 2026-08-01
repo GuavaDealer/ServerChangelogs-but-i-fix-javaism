@@ -33,7 +33,10 @@ public interface IDialog {
         public void recreate() {
             Consumer<IDialog> register = d -> this.dialogMap.put(d.getId(), d);
             this.dialogMap.clear();
-            register.accept(new CreateChangelogDialog(plugin.getChangelogStorage()));
+            register.accept(new CreateChangelogDialog(
+                    plugin.getChangelogStorage(),
+                    plugin.pluginConfig().useNativeFallbackPermissions()
+            ));
             register.accept(new ChangelogDialog(
                     plugin.getChangelogStorage(),
                     plugin.pluginConfig().getDateFormatter(),
