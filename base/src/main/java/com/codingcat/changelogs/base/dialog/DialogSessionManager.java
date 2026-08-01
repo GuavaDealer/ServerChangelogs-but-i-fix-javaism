@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 @RequiredArgsConstructor
 public class DialogSessionManager implements PacketListener {
@@ -91,6 +92,11 @@ public class DialogSessionManager implements PacketListener {
         return includeInputs ? new DynamicCustomAction(clickEvent.getId(), null) : new StaticAction(clickEvent);
     }
 
+    public void startSessionIfNoneActive(@NotNull IDialog dialog, @NotNull IPlayer player, @NotNull Supplier<Object> initialDataSupplier) {
+        if (this.isSessionActive(player, dialog)) return;
+        this.startSession(dialog, player, initialDataSupplier.get());
+    }
+
     public void startSession(@NotNull IDialog dialog, @NotNull IPlayer player, @NotNull Object initialData) {
         this.setSessionData(player, initialData);
         this.activeSessions.put(player.getUniqueId(), dialog.getId());
@@ -99,6 +105,10 @@ public class DialogSessionManager implements PacketListener {
     public void endSession(@NotNull IPlayer player) {
         this.activeSessions.remove(player.getUniqueId());
         this.sessionData.remove(player.getUniqueId());
+    }
+
+    public boolean isSessionActive(@NotNull IPlayer player, @NotNull IDialog dialog) {
+        return dialog.getId().equals(this.activeSessions.get(player.getUniqueId()));
     }
 
     public void setSessionData(@NotNull IPlayer player, @NotNull Object data) {

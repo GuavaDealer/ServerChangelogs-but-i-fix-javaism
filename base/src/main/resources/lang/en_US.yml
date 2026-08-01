@@ -24,6 +24,8 @@ command: # Translations for the plugin's commands
       invalid: "<prefix><red>Invalid configuration: <yellow><arg:0>"
 dialog: # Translations for the plugin's dialog UIs
   error: "<red>An unexpected error occurred while trying to process a dialog action:"
+  popup:
+    close: "<sprite:gui:icon/checkmark> <green>Ok"
   create: # The UI used to publish a new changelog
     title: "<gradient:#a366ff:#9999ff><b>Create Changelog"
     subtitle: "This action will <green>create</green> a new changelog entry <aqua>#<arg:0>"
@@ -33,10 +35,10 @@ dialog: # Translations for the plugin's dialog UIs
     button:
       publish: "<sprite:gui:icon/news> <aqua><b>Publish Changelog"
       cancel: "<sprite:gui:spectator/close> <red><b>Cancel"
-    success: "<prefix><sprite:gui:icon/checkmark> <green>Successfully published a new changelog!"
+    success: "<sprite:gui:icon/checkmark> <green>Successfully published a new changelog!"
     error:
-      content_empty: "<prefix><red>Please specify at least one changelog line"
-      no_permission: "<prefix><red>You don't have permission to create changelogs"
+      content_empty: "<sprite:gui:spectator/close> <red>Please specify at least one changelog line."
+      no_permission: "<sprite:gui:spectator/close> <red>You don't have permission to create changelogs!"
   changelog: # The UI used by players to view the server's changelogs
     title: "<sprite:gui:icon/news> <gradient:#a366ff:#9999ff><b>Server Changelog"
     header: |-
