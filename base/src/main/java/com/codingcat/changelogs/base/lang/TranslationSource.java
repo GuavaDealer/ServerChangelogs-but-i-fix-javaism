@@ -26,7 +26,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static net.kyori.adventure.text.Component.text;
 
@@ -96,15 +95,23 @@ public final class TranslationSource {
         Yaml langFile = new Yaml();
         try {
             Map<String, Object> data = langFile.load(new FileInputStream(file));
-            return data.entrySet()
-                    .stream()
-                    .collect(Collectors.toUnmodifiableMap(e -> ServerChangelogs.NAMESPACE + "." + e.getKey(), e -> e.getValue().toString()));
+            Map<String, String> translations = new HashMap<>();
+            this.addRawTranslationsRecursive(translations, ServerChangelogs.NAMESPACE + ".", data);
+            return translations;
         } catch (IOException e) {
             logger.warn("Failed to load language file {} due to I/O errors:", fileName, e);
         } catch (YAMLException e) {
             logger.warn("Invalid syntax in language file {}:", fileName, e);
         }
         return null;
+    }
+
+    private void addRawTranslationsRecursive(@NotNull Map<String, String> rawTranslations, @NotNull String prefix, @NotNull Map<String, Object> data) {
+        data.forEach((k, v) -> {
+            if (v instanceof String str) rawTranslations.put(prefix + k, str);
+            if (v instanceof Map<?, ?> map) //noinspection unchecked
+                addRawTranslationsRecursive(rawTranslations, prefix + k + ".", (Map<String, Object>) map);
+        });
     }
 
     private @NotNull TagResolver createGlobalTagResolver() {
