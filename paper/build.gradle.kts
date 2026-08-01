@@ -1,6 +1,7 @@
 plugins {
     id("java")
     alias(libs.plugins.lombok)
+    id("com.gradleup.shadow") version "9.6.1"
     id("xyz.jpenilla.run-paper") version "3.0.2"
     id("xyz.jpenilla.resource-factory-paper-convention") version "1.3.1"
 }
@@ -12,14 +13,18 @@ repositories {
 
 dependencies {
     implementation(project(":base"))
+    implementation(project(":platformapi"))
+    compileOnly(libs.packetevents.paper)
     compileOnly("io.papermc.paper:paper-api:26.1.2.build.+")
 }
 
 paperPluginYaml {
-    main = "${group}.changelogs.paper.PaperChangelogsPlugin"
+    name = rootProject.name
+    main = "${group}.changelogs.paper.PaperChangelogsPlatform"
     apiVersion = project.property("minecraft_version_compat").toString()
 
     authors.addAll("codingcat2468")
+    dependencies.server.create("packetevents")
 }
 
 java {
