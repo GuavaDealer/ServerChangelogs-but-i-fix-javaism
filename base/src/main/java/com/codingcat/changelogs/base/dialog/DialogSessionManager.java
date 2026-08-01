@@ -48,7 +48,7 @@ public class DialogSessionManager implements PacketListener {
         IPlayer player = this.playerManager.fromNative(source);
         String dialogId = key.value().substring(fSIdx + 1, lSIdx);
         String actionId = key.value().substring(lSIdx + 1);
-        if (!dialogId.equals(this.activeSessions.get(player.getUniqueId()))) return;
+        if (!dialogId.equals(activeSessions.get(player.getUniqueId())) && !staticActions.contains(key)) return;
         IDialog dialog;
         try {
             dialog = this.dialogHolder.getFromId(dialogId);
