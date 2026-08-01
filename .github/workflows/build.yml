@@ -25,5 +25,5 @@ jobs:
       - name: Upload built artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Built Artifacts
-          path: build/libs
+          name: Paper Platform Artifacts
+          path: paper/build/libs
