@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import java.nio.file.Path;
 
 public interface ChangelogsPlatform {
-    @NotNull ComponentLogger getLogger();
+    @NotNull ComponentLogger getComponentLogger();
 
     @NotNull Path getDataPath();
 

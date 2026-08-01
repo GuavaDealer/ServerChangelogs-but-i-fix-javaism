@@ -55,7 +55,7 @@ public final class ServerChangelogs extends Entrypoint {
 
     @Override
     public void onStart() {
-        logger = getPlatform().getLogger();
+        logger = getPlatform().getComponentLogger();
         Path translationPath = getPlatform().getDataPath().resolve("lang");
         if (translationPath.toFile().mkdirs()) {
             logger.info("Creating default translation files...");
