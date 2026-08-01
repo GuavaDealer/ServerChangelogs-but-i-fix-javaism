@@ -4,6 +4,7 @@ import com.codingcat.changelogs.base.command.BrigadierCommandNode;
 import com.codingcat.changelogs.base.command.DialogSubCommands;
 import com.codingcat.changelogs.base.config.PluginConfig;
 import com.codingcat.changelogs.base.data.ChangelogStorage;
+import com.codingcat.changelogs.base.dialog.DialogSessionManager;
 import com.codingcat.changelogs.base.dialog.IDialog;
 import com.codingcat.changelogs.base.event.ChangelogJoinListener;
 import com.codingcat.changelogs.base.lang.TranslationSource;
@@ -46,6 +47,7 @@ public final class ServerChangelogs extends Entrypoint {
     private PluginConfig config;
     private @Getter ChangelogStorage changelogStorage;
     private @Getter IDialog.Holder dialogHolder;
+    private @Getter DialogSessionManager dialogSessionManager;
 
     public ServerChangelogs(@NotNull ChangelogsPlatform platform) {
         super(platform);
@@ -85,7 +87,8 @@ public final class ServerChangelogs extends Entrypoint {
         this.changelogStorage.init();
         this.dialogHolder = new IDialog.Holder(this);
         this.dialogHolder.recreate();
-        getPlatform().getEventManager().registerMethodDispatcher(new ChangelogJoinListener(this::getChangelogStorage, dialogHolder));
+        this.dialogSessionManager = new DialogSessionManager(this.dialogHolder, getPlatform().getPlayerManager());
+        getPlatform().getEventManager().registerMethodDispatcher(new ChangelogJoinListener(this::getChangelogStorage, dialogHolder, dialogSessionManager));
         this.registerCommands(getPlatform().getCommandManager());
     }
 

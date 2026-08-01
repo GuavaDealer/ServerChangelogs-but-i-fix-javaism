@@ -1,8 +1,9 @@
 package com.codingcat.changelogs.base.command;
 
 import com.codingcat.changelogs.base.ServerChangelogs;
-import com.codingcat.changelogs.base.dialog.ChangelogDialog;
-import com.codingcat.changelogs.base.dialog.CreateChangelogDialog;
+import com.codingcat.changelogs.base.dialog.DialogPackets;
+import com.codingcat.changelogs.base.dialog.ui.ChangelogDialog;
+import com.codingcat.changelogs.base.dialog.ui.CreateChangelogDialog;
 import com.codingcat.changelogs.base.dialog.IDialog;
 import com.codingcat.changelogs.platformapi.command.ICommandManager;
 import com.codingcat.changelogs.platformapi.command.ICommandSource;
@@ -48,7 +49,8 @@ public class DialogSubCommands {
                             source.asAudience().sendMessage(translatable("command.onlyplayer"));
                             return com.mojang.brigadier.Command.SINGLE_SUCCESS;
                         }
-                        plugin.getDialogHolder().getFromType(this.dialogCls).showTo(source.getExecutingPlayer());
+                        plugin.getDialogHolder().getFromType(this.dialogCls)
+                                .showTo(source.getExecutingPlayer(), plugin.getDialogSessionManager(), DialogPackets.PacketPhase.PLAY);
                         return com.mojang.brigadier.Command.SINGLE_SUCCESS;
                     }).build();
         }

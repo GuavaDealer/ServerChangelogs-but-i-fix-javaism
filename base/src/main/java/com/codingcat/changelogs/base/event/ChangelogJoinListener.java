@@ -1,7 +1,9 @@
 package com.codingcat.changelogs.base.event;
 
 import com.codingcat.changelogs.base.data.ChangelogStorage;
-import com.codingcat.changelogs.base.dialog.ChangelogDialog;
+import com.codingcat.changelogs.base.dialog.DialogPackets;
+import com.codingcat.changelogs.base.dialog.DialogSessionManager;
+import com.codingcat.changelogs.base.dialog.ui.ChangelogDialog;
 import com.codingcat.changelogs.base.dialog.IDialog;
 import com.codingcat.changelogs.platformapi.event.MethodDispatchingListener;
 import com.codingcat.changelogs.platformapi.event.impl.PlayerJoinEvent;
@@ -14,6 +16,7 @@ import java.util.function.Supplier;
 public class ChangelogJoinListener implements MethodDispatchingListener {
     private final @NotNull Supplier<ChangelogStorage> storageSupplier;
     private final @NotNull IDialog.Holder dialogHolder;
+    private final @NotNull DialogSessionManager sessionManager;
 
     @ListenerMethod
     public void onPlayerJoin(@NotNull PlayerJoinEvent event) {
@@ -22,6 +25,6 @@ public class ChangelogJoinListener implements MethodDispatchingListener {
                 .anyMatch(e -> !e.hasRead(event.getPlayer()));
         if (!unreadChangelogs) return;
         ChangelogDialog dialog = this.dialogHolder.getFromType(ChangelogDialog.class);
-        dialog.showTo(event.getPlayer());
+        dialog.showTo(event.getPlayer(), this.sessionManager, DialogPackets.PacketPhase.PLAY);
     }
 }

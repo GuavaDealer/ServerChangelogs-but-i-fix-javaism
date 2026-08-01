@@ -1,51 +1,40 @@
 package com.codingcat.changelogs.base.dialog;
 
 import com.codingcat.changelogs.base.ServerChangelogs;
+import com.codingcat.changelogs.base.dialog.ui.ChangelogDialog;
+import com.codingcat.changelogs.base.dialog.ui.CreateChangelogDialog;
 import com.codingcat.changelogs.platformapi.player.IPlayer;
-import io.papermc.paper.dialog.Dialog;
-import io.papermc.paper.dialog.DialogResponseView;
-import io.papermc.paper.registry.data.dialog.action.DialogAction;
+import com.github.retrooper.packetevents.protocol.dialog.Dialog;
+import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
 import lombok.RequiredArgsConstructor;
-import net.kyori.adventure.text.event.ClickCallback;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import static com.codingcat.changelogs.base.ServerChangelogs.error;
+import java.util.*;
+import java.util.function.Consumer;
 
 public interface IDialog {
-    @NotNull Dialog build(@NotNull IPlayer player);
+    @NotNull Dialog build(@NotNull IPlayer player, @NotNull DialogSessionManager sessionManager);
 
-    default void showTo(@NotNull IPlayer player) {
-        Dialog dialog = this.build(player);
-        player.showDialog(dialog);
+    default void showTo(@NotNull IPlayer player, @NotNull DialogSessionManager sessionManager, @NotNull DialogPackets.PacketPhase packetPhase) {
+        Dialog dialog = this.build(player, sessionManager);
+        DialogPackets.showDialog(player, dialog, packetPhase);
     }
 
-    @SuppressWarnings("UnstableApiUsage")
-    void onActionTriggered(@NotNull String action, @NotNull DialogResponseView data, @NotNull IPlayer source);
+    void onActionTriggered(@NotNull String action, @Nullable NBTCompound data, @NotNull IPlayer source, @NotNull DialogSessionManager sessionManager);
 
-    @SuppressWarnings("UnstableApiUsage")
-    default @NotNull DialogAction action(@NotNull String id) {
-        return DialogAction.customClick((response, audience) -> {
-            if (!(audience instanceof Player player)) return;
-            try {
-                this.onActionTriggered(id, response, player);
-            } catch (Throwable e) {
-                error("dialog.error", e);
-            }
-        }, ClickCallback.Options.builder().uses(1).build());
-    }
+    @NotNull String getId();
 
     @RequiredArgsConstructor
     final class Holder {
         private final @NotNull ServerChangelogs plugin;
-        private final Set<IDialog> dialogSet = new HashSet<>();
+        private final Map<String, IDialog> dialogMap = new HashMap<>();
 
         public void recreate() {
-            this.dialogSet.clear();
-            this.dialogSet.add(new CreateChangelogDialog(plugin.getChangelogStorage()));
-            this.dialogSet.add(new ChangelogDialog(
+            Consumer<IDialog> register = d -> this.dialogMap.put(d.getId(), d);
+            this.dialogMap.clear();
+            register.accept(new CreateChangelogDialog(plugin.getChangelogStorage()));
+            register.accept(new ChangelogDialog(
                     plugin.getChangelogStorage(),
                     plugin.pluginConfig().getDateFormatter(),
                     plugin.pluginConfig().showChangelogHeader(),
@@ -53,8 +42,12 @@ public interface IDialog {
             ));
         }
 
+        public @NotNull IDialog getFromId(@NotNull String id) throws NullPointerException {
+            return Objects.requireNonNull(this.dialogMap.get(id), "No dialog found matching ID \"" + id + "\"");
+        }
+
         public <T extends IDialog> @NotNull T getFromType(@NotNull Class<T> cls) throws IllegalArgumentException {
-            return this.dialogSet.stream()
+            return this.dialogMap.values().stream()
                     .filter(d -> cls.isAssignableFrom(d.getClass()))
                     .findAny().map(cls::cast)
                     .orElseThrow(() -> new IllegalArgumentException("No matching dialog found"));
