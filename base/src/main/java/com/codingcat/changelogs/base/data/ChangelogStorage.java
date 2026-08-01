@@ -27,6 +27,6 @@ public interface ChangelogStorage {
     static @NotNull ChangelogStorage create(@NotNull String identifier, @NotNull ServerChangelogs plugin) throws IllegalArgumentException {
         if (!identifier.equals("yaml"))
             throw new IllegalArgumentException("Unknown changelog storage type \"" + identifier + "\"");
-        return new YamlChangelogStorage(plugin.getDataPath().resolve("_data.yml"));
+        return new YamlChangelogStorage(plugin.getPlatform().getDataPath().resolve("_data.yml"));
     }
 }

@@ -2,6 +2,7 @@ package com.codingcat.changelogs.base.dialog;
 
 import com.codingcat.changelogs.base.data.ChangelogEntry;
 import com.codingcat.changelogs.base.data.ChangelogStorage;
+import com.codingcat.changelogs.platformapi.player.IPlayer;
 import io.papermc.paper.dialog.Dialog;
 import io.papermc.paper.dialog.DialogResponseView;
 import io.papermc.paper.registry.data.dialog.ActionButton;
@@ -11,7 +12,6 @@ import io.papermc.paper.registry.data.dialog.body.PlainMessageDialogBody;
 import io.papermc.paper.registry.data.dialog.type.DialogType;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,7 +34,7 @@ public class ChangelogDialog implements IDialog {
     private final @Nullable ItemStack headerItem;
 
     @Override
-    public @NotNull Dialog build(@NotNull Player p) {
+    public @NotNull Dialog build(@NotNull IPlayer p) {
         Component authorNull = translatableManual(p, "dialog.changelog.unspecified_author");
         List<DialogBody> body = this.storage.listEntries()
                 .reversed().stream()
@@ -74,7 +74,7 @@ public class ChangelogDialog implements IDialog {
     }
 
     @Override
-    public void onActionTriggered(@NotNull String action, @NotNull DialogResponseView data, @NotNull Player source) {
+    public void onActionTriggered(@NotNull String action, @NotNull DialogResponseView data, @NotNull IPlayer source) {
         if (!action.equals("close")) return;
         List<Integer> uids = this.storage.listEntries()
                 .stream()

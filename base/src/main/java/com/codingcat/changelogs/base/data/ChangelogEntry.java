@@ -1,7 +1,7 @@
 package com.codingcat.changelogs.base.data;
 
+import com.codingcat.changelogs.platformapi.player.IPlayer;
 import net.kyori.adventure.text.Component;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,7 +17,7 @@ public record ChangelogEntry(
         @Nullable Component author,
         @NotNull Set<UUID> playersRead
 ) {
-    public boolean hasRead(@NotNull Player player) {
+    public boolean hasRead(@NotNull IPlayer player) {
         return this.playersRead().contains(player.getUniqueId());
     }
 }

@@ -1,12 +1,12 @@
 package com.codingcat.changelogs.base.dialog;
 
 import com.codingcat.changelogs.base.ServerChangelogs;
+import com.codingcat.changelogs.platformapi.player.IPlayer;
 import io.papermc.paper.dialog.Dialog;
 import io.papermc.paper.dialog.DialogResponseView;
 import io.papermc.paper.registry.data.dialog.action.DialogAction;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.event.ClickCallback;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
@@ -15,15 +15,15 @@ import java.util.Set;
 import static com.codingcat.changelogs.base.ServerChangelogs.error;
 
 public interface IDialog {
-    @NotNull Dialog build(@NotNull Player player);
+    @NotNull Dialog build(@NotNull IPlayer player);
 
-    default void showTo(@NotNull Player player) {
+    default void showTo(@NotNull IPlayer player) {
         Dialog dialog = this.build(player);
         player.showDialog(dialog);
     }
 
     @SuppressWarnings("UnstableApiUsage")
-    void onActionTriggered(@NotNull String action, @NotNull DialogResponseView data, @NotNull Player source);
+    void onActionTriggered(@NotNull String action, @NotNull DialogResponseView data, @NotNull IPlayer source);
 
     @SuppressWarnings("UnstableApiUsage")
     default @NotNull DialogAction action(@NotNull String id) {

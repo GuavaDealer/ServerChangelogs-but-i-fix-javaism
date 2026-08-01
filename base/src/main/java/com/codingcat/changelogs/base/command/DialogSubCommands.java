@@ -4,11 +4,11 @@ import com.codingcat.changelogs.base.ServerChangelogs;
 import com.codingcat.changelogs.base.dialog.ChangelogDialog;
 import com.codingcat.changelogs.base.dialog.CreateChangelogDialog;
 import com.codingcat.changelogs.base.dialog.IDialog;
+import com.codingcat.changelogs.platformapi.command.ICommandManager;
+import com.codingcat.changelogs.platformapi.command.ICommandSource;
 import com.mojang.brigadier.tree.LiteralCommandNode;
-import io.papermc.paper.command.brigadier.CommandSourceStack;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -16,7 +16,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static com.codingcat.changelogs.base.lang.TranslationSource.translatable;
-import static io.papermc.paper.command.brigadier.Commands.literal;
+import static com.mojang.brigadier.builder.LiteralArgumentBuilder.literal;
 
 public class DialogSubCommands {
     public static @NotNull Set<BrigadierCommandNode> withDialogs(@NotNull BrigadierCommandNode... commands) {
@@ -27,7 +27,7 @@ public class DialogSubCommands {
         return commandSet;
     }
 
-    public static @NotNull LiteralCommandNode<CommandSourceStack> buildDedicatedChangelogCommand(@NotNull ServerChangelogs plugin) {
+    public static @NotNull LiteralCommandNode<?> buildDedicatedChangelogCommand(@NotNull ServerChangelogs plugin) {
         return new Command("changelog", "dedicated_command", ChangelogDialog.class).build(plugin);
     }
 
@@ -38,15 +38,17 @@ public class DialogSubCommands {
         private final @NotNull Class<? extends IDialog> dialogCls;
 
         @Override
-        public @NotNull LiteralCommandNode<CommandSourceStack> build(@NotNull ServerChangelogs plugin) {
+        public @NotNull LiteralCommandNode<Object> build(@NotNull ServerChangelogs plugin) {
+            ICommandManager commandManager = plugin.getPlatform().getCommandManager();
             return literal(this.name)
-                    .requires(BrigadierCommandNode.requirePermission(this.permission))
+                    .requires(BrigadierCommandNode.requirePermission(this.permission, commandManager, false))
                     .executes(ctx -> {
-                        if (!(ctx.getSource().getSender() instanceof Player player)) {
-                            ctx.getSource().getSender().sendMessage(translatable("command.onlyplayer"));
+                        ICommandSource source = commandManager.adaptPlatformSource(ctx.getSource());
+                        if (source.getExecutingPlayer() == null) {
+                            source.asAudience().sendMessage(translatable("command.onlyplayer"));
                             return com.mojang.brigadier.Command.SINGLE_SUCCESS;
                         }
-                        plugin.getDialogHolder().getFromType(this.dialogCls).showTo(player);
+                        plugin.getDialogHolder().getFromType(this.dialogCls).showTo(source.getExecutingPlayer());
                         return com.mojang.brigadier.Command.SINGLE_SUCCESS;
                     }).build();
         }

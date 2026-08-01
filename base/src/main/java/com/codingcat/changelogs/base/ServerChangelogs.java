@@ -1,5 +1,7 @@
 package com.codingcat.changelogs.base;
 
+import com.codingcat.changelogs.platformapi.ChangelogsPlatform;
+import com.codingcat.changelogs.platformapi.Entrypoint;
 import com.codingcat.changelogs.base.command.BrigadierCommandNode;
 import com.codingcat.changelogs.base.command.DialogSubCommands;
 import com.codingcat.changelogs.base.config.PluginConfig;
@@ -8,11 +10,9 @@ import com.codingcat.changelogs.base.dialog.IDialog;
 import com.codingcat.changelogs.base.event.ChangelogJoinListener;
 import com.codingcat.changelogs.base.lang.TranslationSource;
 import com.codingcat.changelogs.base.util.ResourceUtil;
+import com.codingcat.changelogs.platformapi.command.ICommandManager;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.tree.LiteralCommandNode;
-import io.papermc.paper.command.brigadier.CommandSourceStack;
-import io.papermc.paper.command.brigadier.Commands;
-import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import lombok.Getter;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
@@ -20,7 +20,6 @@ import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import net.kyori.adventure.translation.GlobalTranslator;
 import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -35,9 +34,10 @@ import java.util.function.Function;
 
 import static com.codingcat.changelogs.base.command.BrigadierCommandNode.requirePermission;
 import static com.codingcat.changelogs.base.lang.TranslationSource.translatable;
+import static com.mojang.brigadier.builder.LiteralArgumentBuilder.literal;
 import static net.kyori.adventure.text.Component.text;
 
-public final class ServerChangelogs extends JavaPlugin {
+public final class ServerChangelogs extends Entrypoint {
     public static @NotNull String NAMESPACE = "server_changelogs";
     @SuppressWarnings("PatternValidation")
     public static final Function<String, Key> KEY_GENERATOR = path -> Key.key(NAMESPACE, path);
@@ -47,10 +47,14 @@ public final class ServerChangelogs extends JavaPlugin {
     private @Getter ChangelogStorage changelogStorage;
     private @Getter IDialog.Holder dialogHolder;
 
+    public ServerChangelogs(@NotNull ChangelogsPlatform platform) {
+        super(platform);
+    }
+
     @Override
-    public void onEnable() {
-        logger = this.getComponentLogger();
-        Path translationPath = getDataPath().resolve("lang");
+    public void onStart() {
+        logger = getPlatform().getLogger();
+        Path translationPath = getPlatform().getDataPath().resolve("lang");
         if (translationPath.toFile().mkdirs()) {
             logger.info("Creating default translation files...");
             ResourceUtil.readResourcesAsString("lang").forEach((fname, contents) -> {
@@ -61,10 +65,10 @@ public final class ServerChangelogs extends JavaPlugin {
                 }
             });
         }
-        this.translationSource = new TranslationSource(translationPath, getPluginMeta(), logger);
+        this.translationSource = new TranslationSource(translationPath, getPlatform().getChangelogsMeta(), logger);
         this.translationSource.reload();
         info("console.startup");
-        Path configPath = getDataPath().resolve("config.yml");
+        Path configPath = getPlatform().getDataPath().resolve("config.yml");
         if (!configPath.toFile().exists()) {
             logger.info("Creating default configuration file...");
             String defaultConfig = ResourceUtil.readResourceAsString("defaults/config.yml");
@@ -81,19 +85,21 @@ public final class ServerChangelogs extends JavaPlugin {
         this.changelogStorage.init();
         this.dialogHolder = new IDialog.Holder(this);
         this.dialogHolder.recreate();
-        getServer().getPluginManager().registerEvents(new ChangelogJoinListener(this::getChangelogStorage, dialogHolder), this);
-        this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, commands -> {
-            LiteralCommandNode<CommandSourceStack> rootNode = Commands.literal(NAMESPACE)
-                    .requires(requirePermission("command"))
-                    .executes(ctx -> {
-                        ctx.getSource().getSender().sendMessage(translatable("command.root"));
-                        return Command.SINGLE_SUCCESS;
-                    }).build();
-            BrigadierCommandNode.SUB_COMMANDS.forEach(c -> rootNode.addChild(c.build(this)));
-            commands.registrar().register(rootNode, Set.of("changelogs", "scl"));
-            if (this.config.registerDedicatedCommand())
-                commands.registrar().register(DialogSubCommands.buildDedicatedChangelogCommand(this));
-        });
+        getPlatform().getEventManager().registerMethodDispatcher(new ChangelogJoinListener(this::getChangelogStorage, dialogHolder));
+        this.registerCommands(getPlatform().getCommandManager());
+    }
+
+    private void registerCommands(@NotNull ICommandManager commandManager) {
+        LiteralCommandNode<Object> rootNode = literal(NAMESPACE)
+                .requires(requirePermission("command", commandManager, false))
+                .executes(ctx -> {
+                    commandManager.adaptPlatformSource(ctx).asAudience().sendMessage(translatable("command.root"));
+                    return Command.SINGLE_SUCCESS;
+                }).build();
+        BrigadierCommandNode.SUB_COMMANDS.forEach(c -> rootNode.addChild(c.build(this)));
+        commandManager.register(rootNode, Set.of("changelogs", "scl"));
+        if (this.config.registerDedicatedCommand())
+            commandManager.register(DialogSubCommands.buildDedicatedChangelogCommand(this));
     }
 
     public void reload() throws IOException, InvalidConfigurationException {
@@ -110,7 +116,7 @@ public final class ServerChangelogs extends JavaPlugin {
     }
 
     @Override
-    public void onDisable() {
+    public void onShutdown() {
         info("console.shutdown");
     }
 

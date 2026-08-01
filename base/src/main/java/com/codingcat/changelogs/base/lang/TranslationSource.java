@@ -1,6 +1,8 @@
 package com.codingcat.changelogs.base.lang;
 
 import com.codingcat.changelogs.base.ServerChangelogs;
+import com.codingcat.changelogs.platformapi.meta.ChangelogsMeta;
+import com.codingcat.changelogs.platformapi.player.IPlayer;
 import io.papermc.paper.plugin.configuration.PluginMeta;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.key.Key;
@@ -24,10 +26,7 @@ import org.jetbrains.annotations.Unmodifiable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static net.kyori.adventure.text.Component.text;
@@ -35,7 +34,7 @@ import static net.kyori.adventure.text.Component.text;
 @RequiredArgsConstructor
 public final class TranslationSource {
     private final @NotNull Path sourceDirectory;
-    private final @NotNull PluginMeta pluginMeta;
+    private final @NotNull ChangelogsMeta changelogsMeta;
     private final @NotNull ComponentLogger logger;
     private final Key storeKey = ServerChangelogs.KEY_GENERATOR.apply("translations");
     private final MiniMessage miniMessage = MiniMessage.builder()
@@ -120,13 +119,15 @@ public final class TranslationSource {
                 .tag("plugin", (args, context) -> {
                     String property = args.popOr("Missing argument for tag \"plugin\"").lowerValue();
                     String value = switch (property) {
-                        case "name" -> pluginMeta.getName();
-                        case "description" -> pluginMeta.getDescription();
-                        case "version" -> pluginMeta.getVersion();
-                        case "authors" -> String.join(", ", pluginMeta.getAuthors());
+                        case "name" -> changelogsMeta.getName();
+                        case "description" -> changelogsMeta.getDescription();
+                        case "version" -> changelogsMeta.getVersion();
+                        case "authors" -> Optional.ofNullable(changelogsMeta.getAuthors())
+                                .map(a -> String.join(", ", a))
+                                .orElse(null);
                         default -> throw context.newException("Invalid argument \"" + property + "\"", args);
                     };
-                    return Tag.selfClosingInserting(text(Objects.requireNonNull(value)));
+                    return Tag.selfClosingInserting(value != null ? text(value) : translatable("meta.unknown"));
                 }).build();
     }
 
@@ -138,8 +139,8 @@ public final class TranslationSource {
      * Used in dialogs specifically since paper doesn't provide {@link GlobalTranslator}
      * support for those yet (see <a href="https://github.com/PaperMC/Paper/issues/12971">this issue</a>)
      */
-    public static @NotNull Component translatableManual(@NotNull Player player, @NotNull String key, @NotNull ComponentLike... args) {
-        Component translation = GlobalTranslator.translator().translate(translatable(key, args), player.locale());
+    public static @NotNull Component translatableManual(@NotNull IPlayer player, @NotNull String key, @NotNull ComponentLike... args) {
+        Component translation = GlobalTranslator.translator().translate(translatable(key, args), player.getClientLocale());
         return Objects.requireNonNullElseGet(translation, () -> text(ServerChangelogs.NAMESPACE + "." + key));
     }
 }

@@ -3,6 +3,7 @@ package com.codingcat.changelogs.base.dialog;
 import com.codingcat.changelogs.base.ServerChangelogs;
 import com.codingcat.changelogs.base.data.ChangelogEntry;
 import com.codingcat.changelogs.base.data.ChangelogStorage;
+import com.codingcat.changelogs.platformapi.player.IPlayer;
 import io.papermc.paper.dialog.Dialog;
 import io.papermc.paper.dialog.DialogResponseView;
 import io.papermc.paper.registry.data.dialog.ActionButton;
@@ -15,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Material;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,7 +34,7 @@ public class CreateChangelogDialog implements IDialog {
     private final @NotNull ChangelogStorage storage;
 
     @Override
-    public @NotNull Dialog build(@NotNull Player p) {
+    public @NotNull Dialog build(@NotNull IPlayer p) {
         int newId = this.storage.nextUID() + 1;
         List<? extends DialogBody> body = List.of(
                 DialogBody.item(ItemStack.of(Material.WRITABLE_BOOK),
@@ -60,10 +60,10 @@ public class CreateChangelogDialog implements IDialog {
     }
 
     @Override
-    public void onActionTriggered(@NotNull String action, @NotNull DialogResponseView data, @NotNull Player source) {
+    public void onActionTriggered(@NotNull String action, @NotNull DialogResponseView data, @NotNull IPlayer source) {
         if (!action.equals("publish")) return;
         if (!source.hasPermission(ServerChangelogs.NAMESPACE + ".command.create")) {
-            source.sendMessage(translatable("dialog.create.error.no_permission"));
+            source.asAudience().sendMessage(translatable("dialog.create.error.no_permission"));
             return;
         }
         List<Component> lines = Objects.requireNonNull(data.getText("contents"))
@@ -71,7 +71,7 @@ public class CreateChangelogDialog implements IDialog {
                 .map(MiniMessage.miniMessage()::deserialize)
                 .toList();
         if (lines.isEmpty()) {
-            source.sendMessage(translatable("dialog.create.error.content_empty"));
+            source.asAudience().sendMessage(translatable("dialog.create.error.content_empty"));
             return;
         }
         String author = Objects.requireNonNull(data.getText("author"));
@@ -82,6 +82,6 @@ public class CreateChangelogDialog implements IDialog {
                 new HashSet<>()
         );
         this.storage.storeEntry(entry);
-        source.sendMessage(translatable("dialog.create.success"));
+        source.asAudience().sendMessage(translatable("dialog.create.success"));
     }
 }

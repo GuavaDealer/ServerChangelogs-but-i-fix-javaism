@@ -1,9 +1,10 @@
 package com.codingcat.changelogs.base.command;
 
 import com.codingcat.changelogs.base.ServerChangelogs;
+import com.codingcat.changelogs.platformapi.command.ICommandManager;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.tree.LiteralCommandNode;
-import io.papermc.paper.command.brigadier.CommandSourceStack;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.jetbrains.annotations.NotNull;
@@ -12,28 +13,30 @@ import java.io.IOException;
 
 import static com.codingcat.changelogs.base.lang.TranslationSource.translatable;
 import static com.codingcat.changelogs.base.ServerChangelogs.error;
-import static io.papermc.paper.command.brigadier.Commands.literal;
+import static com.mojang.brigadier.builder.LiteralArgumentBuilder.literal;
 import static net.kyori.adventure.text.Component.text;
 
 public class ReloadSubCommand implements BrigadierCommandNode {
     @Override
-    public @NotNull LiteralCommandNode<CommandSourceStack> build(@NotNull ServerChangelogs plugin) {
+    public @NotNull LiteralCommandNode<Object> build(@NotNull ServerChangelogs plugin) {
+        ICommandManager commandManager = plugin.getPlatform().getCommandManager();
         return literal("reload")
-                .requires(BrigadierCommandNode.requirePermission("command.reload"))
+                .requires(BrigadierCommandNode.requirePermission("command.reload", commandManager, false))
                 .executes(ctx -> {
+                    Audience audience = commandManager.adaptPlatformSource(ctx).asAudience();
                     long time = System.currentTimeMillis();
                     Component errorMsg = null;
                     try {
                         plugin.reload();
                         long took = System.currentTimeMillis() - time;
-                        ctx.getSource().getSender().sendMessage(translatable("command.reload.success", text(took)));
+                        audience.sendMessage(translatable("command.reload.success", text(took)));
                     } catch (IOException e) {
                         errorMsg = translatable("command.reload.error.io");
                         error("command.reload.error.details", e);
                     } catch (InvalidConfigurationException e) {
                         errorMsg = translatable("command.reload.error.invalid", text(e.getMessage()));
                     }
-                    if (errorMsg != null) ctx.getSource().getSender().sendMessage(errorMsg);
+                    if (errorMsg != null) audience.sendMessage(errorMsg);
                     return Command.SINGLE_SUCCESS;
                 }).build();
     }

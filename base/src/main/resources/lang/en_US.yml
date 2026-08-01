@@ -4,6 +4,7 @@
 plugin_name: "<click:open_url:https://modrinth.com/project/server-changelogs><gradient:#a366ff:#9999ff><b><plugin:name>"
 #plugin_name: "<gradient:#a366ff:#9999ff><b><plugin:name>"
 prefix: "<translate:plugin_name><reset><dark_gray> » <reset>" # The plugin prefix, can be used with <prefix>
+meta.unknown: "<red>Unknown"
 console: # Translations for most messages the plugin will send in the server's console
   startup: "Starting <translate:plugin_name> <gray>v<plugin:version></gray> by <aqua><plugin:authors></aqua>"
   startup_storage: "Initializing <green>\"<arg:0>\"</green> changelog storage..."
