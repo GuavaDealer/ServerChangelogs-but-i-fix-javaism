@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.permission.PermissionChecker;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.util.TriState;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerKickEvent;
 import org.jetbrains.annotations.NotNull;
@@ -30,6 +31,11 @@ public class PaperPlayerWrapper implements IPlayer {
     @Override
     public boolean isFirstJoin() {
         return !this.player.hasPlayedBefore();
+    }
+
+    @Override
+    public @NotNull TriState isNativeAdmin() {
+        return TriState.byBoolean(player.isOp());
     }
 
     @Override

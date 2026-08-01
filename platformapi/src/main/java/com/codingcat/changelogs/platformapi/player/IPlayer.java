@@ -2,6 +2,7 @@ package com.codingcat.changelogs.platformapi.player;
 
 import com.codingcat.changelogs.platformapi.audience.IBasePermissionHolderAudienceWrapper;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.util.TriState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,6 +15,8 @@ public interface IPlayer extends IBasePermissionHolderAudienceWrapper {
     @NotNull Locale getClientLocale();
 
     boolean isFirstJoin();
+
+    @NotNull TriState isNativeAdmin();
 
     void kick(@Nullable Component reason);
 }
