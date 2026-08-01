@@ -13,7 +13,6 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientCu
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.key.Key;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 import java.util.Set;
@@ -65,7 +64,7 @@ public class DialogSessionManager {
         return includeInputs ? new DynamicCustomAction(clickEvent.getId(), null) : new StaticAction(clickEvent);
     }
 
-    public void startSession(@NotNull IDialog dialog, @NotNull IPlayer player, @Nullable Object initialData) {
+    public void startSession(@NotNull IDialog dialog, @NotNull IPlayer player, @NotNull Object initialData) {
         this.setSessionData(player, initialData);
         this.activeSessions.put(player.getUniqueId(), dialog.getId());
     }
@@ -75,11 +74,11 @@ public class DialogSessionManager {
         this.sessionData.remove(player.getUniqueId());
     }
 
-    public void setSessionData(@NotNull IPlayer player, @Nullable Object data) {
+    public void setSessionData(@NotNull IPlayer player, @NotNull Object data) {
         this.sessionData.put(player.getUniqueId(), data);
     }
 
-    public <T> @Nullable T getSessionData(@NotNull IPlayer player, @NotNull Class<T> dataType) throws ClassCastException {
+    public <T> @NotNull T getSessionData(@NotNull IPlayer player, @NotNull Class<T> dataType) throws ClassCastException {
         return dataType.cast(this.sessionData.get(player.getUniqueId()));
     }
 }

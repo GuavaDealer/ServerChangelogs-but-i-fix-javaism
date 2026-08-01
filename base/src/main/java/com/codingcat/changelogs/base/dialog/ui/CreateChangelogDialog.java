@@ -60,7 +60,7 @@ public class CreateChangelogDialog implements IDialog {
         );
         ActionButton yesBtn = new ActionButton(new CommonButtonData(translatableManual(p, "dialog.create.button.publish"), null, 160), sessionManager.createSessionBased(this, "publish", true));
         ActionButton noBtn = new ActionButton(new CommonButtonData(translatableManual(p, "dialog.create.button.cancel"), null, 100), sessionManager.createSessionBased(this, "close", false));
-        sessionManager.startSession(this, p, null);
+        sessionManager.startSession(this, p, new Object());
         return new ConfirmationDialog(common, yesBtn, noBtn);
     }
 
