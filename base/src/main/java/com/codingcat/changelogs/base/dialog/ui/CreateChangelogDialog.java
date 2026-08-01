@@ -45,13 +45,13 @@ public class CreateChangelogDialog implements IDialog {
         int newId = this.storage.nextUID() + 1;
         List<DialogBody> body = List.of(
                 new ItemDialogBody(ItemStack.builder().type(ItemTypes.WRITABLE_BOOK).build(),
-                        new PlainMessage(translatableManual(p, "dialog.create.subtitle", text(newId)), 50),
-                        false, false, 10, 10)
+                        new PlainMessage(translatableManual(p, "dialog.create.subtitle", text(newId)), 160),
+                        false, false, 15, 15)
         );
         List<Input> inputs = List.of(
                 new Input("contents", new TextInputControl(250, translatableManual(p, "dialog.create.input.contents"),
                         true, "", 20000, new TextInputControl.MultilineOptions(100, 300))),
-                new Input("author", new TextInputControl(100, translatableManual(p, "dialog.create.input.author"), true, "", 200, null))
+                new Input("author", new TextInputControl(200, translatableManual(p, "dialog.create.input.author"), true, "", 200, null))
         );
         CommonDialogData common = new CommonDialogData(
                 translatableManual(p, "dialog.create.title"),
