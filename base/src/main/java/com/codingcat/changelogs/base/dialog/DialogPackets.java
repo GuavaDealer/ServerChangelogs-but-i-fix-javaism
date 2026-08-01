@@ -38,7 +38,7 @@ public final class DialogPackets {
         CommonDialogData common = new CommonDialogData(
                 translatableManual(player, titleTranslation),
                 null, true, false,
-                DialogAction.CLOSE, List.of(body), List.of()
+                action != null ? DialogAction.NONE : DialogAction.CLOSE, List.of(body), List.of()
         );
         ActionButton closeButton = new ActionButton(new CommonButtonData(translatableManual(player, "dialog.popup.close"), null, 40), action);
         showDialog(player, new NoticeDialog(common, closeButton), packetPhase);

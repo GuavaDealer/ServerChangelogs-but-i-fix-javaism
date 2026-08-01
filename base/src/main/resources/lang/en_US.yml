@@ -29,15 +29,22 @@ dialog: # Translations for the plugin's dialog UIs
   create: # The UI used to publish a new changelog
     title: "<gradient:#a366ff:#9999ff><b>Create Changelog"
     subtitle: "This action will <green>create</green> a new changelog entry <aqua>#<arg:0>"
+    hint: |-
+      Add <green>lines</green> to the new changelog below. Formatting in <rainbow>MiniMessage</rainbow> is supported!
+      Dashes <gray>(<b>-</b>)</gray> are added automatically. Use <red>one line</red> to describe an <red>individual</red> change.
+      You can see a <green>preview</green> of your new changelog below here:
+    empty_preview: "<sprite:gui:icon/search> <u><gray>Add a line using the text field below to see a preview."
     input:
-      contents: "Lines <gray>(newline = separate sub-change)</gray>"
+      contents: "Line Content"
       author: "Author <gray>(optional)</gray>"
     button:
       publish: "<sprite:gui:icon/news> <aqua><b>Publish Changelog"
+      add_line: "<sprite:gui:toast/social_interactions> <green><b>Add Line"
       cancel: "<sprite:gui:spectator/close> <red><b>Cancel"
     success: "<sprite:gui:icon/checkmark> <green>Successfully published a new changelog!"
     error:
-      content_empty: "<sprite:gui:spectator/close> <red>Please specify at least one changelog line."
+      no_lines: "<sprite:gui:spectator/close> <red>Please specify at least one changelog line."
+      add_empty_line: "<sprite:gui:spectator/close> <red>Please specify the content of the line first."
       no_permission: "<sprite:gui:spectator/close> <red>You don't have permission to create changelogs!"
   changelog: # The UI used by players to view the server's changelogs
     title: "<sprite:gui:icon/news> <gradient:#a366ff:#9999ff><b>Server Changelog"

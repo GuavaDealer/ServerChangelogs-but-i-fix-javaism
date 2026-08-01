@@ -34,6 +34,7 @@ import static net.kyori.adventure.text.Component.text;
 
 @RequiredArgsConstructor
 public class ChangelogDialog implements IDialog {
+    static final int LINE_WIDTH = 440;
     private final @Getter String id = "changelog_view";
     private final @NotNull ChangelogStorage storage;
     private final @NotNull DateTimeFormatter dateFormatter;
@@ -46,8 +47,8 @@ public class ChangelogDialog implements IDialog {
         List<DialogBody> body = this.storage.listEntries()
                 .reversed().stream()
                 .map(e -> translatableManual(p, "dialog.changelog.entry" + (!e.hasRead(p) ? "_unread" : ""),
-                        text(dateFormatter.format(e.recordedAt())), createLinesComponent(p, e), Objects.requireNonNullElse(e.author(), authorNull)))
-                .map(c -> (DialogBody) new PlainMessageDialogBody(new PlainMessage(c, 440)))
+                        text(dateFormatter.format(e.recordedAt())), createLinesComponent(p, e.lines()), Objects.requireNonNullElse(e.author(), authorNull)))
+                .map(c -> (DialogBody) new PlainMessageDialogBody(new PlainMessage(c, LINE_WIDTH)))
                 .toList();
         if (body.isEmpty())
             body = List.of(new PlainMessageDialogBody(new PlainMessage(translatableManual(p, "dialog.changelog.empty"), 350)));
@@ -68,9 +69,9 @@ public class ChangelogDialog implements IDialog {
         return new NoticeDialog(common, button);
     }
 
-    private @NotNull Component createLinesComponent(@NotNull IPlayer player, @NotNull ChangelogEntry entry) {
+    static @NotNull Component createLinesComponent(@NotNull IPlayer player, @NotNull List<Component> lines) {
         Component component = Component.empty();
-        List<Component> newLines = entry.lines().stream()
+        List<Component> newLines = lines.stream()
                 .map(l -> translatableManual(player, "dialog.changelog.entry_line", l))
                 .toList();
         for (Component line : newLines) {
