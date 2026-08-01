@@ -2,6 +2,7 @@ package com.codingcat.changelogs.platformapi;
 
 import com.codingcat.changelogs.platformapi.command.ICommandManager;
 import com.codingcat.changelogs.platformapi.event.IEventManager;
+import com.codingcat.changelogs.platformapi.item.NativeItemManager;
 import com.codingcat.changelogs.platformapi.meta.ChangelogsMeta;
 import com.codingcat.changelogs.platformapi.meta.PlatformMeta;
 import com.codingcat.changelogs.platformapi.player.IPlayerManager;
@@ -20,6 +21,8 @@ public interface ChangelogsPlatform {
     @NotNull IEventManager getEventManager();
 
     @NotNull ICommandManager getCommandManager();
+
+    @NotNull NativeItemManager getNativeItemManager();
 
     @NotNull PlatformMeta getPlatformMeta();
 

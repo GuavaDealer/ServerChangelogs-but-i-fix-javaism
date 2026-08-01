@@ -2,14 +2,11 @@ package com.codingcat.changelogs.base.config;
 
 import com.codingcat.changelogs.base.ServerChangelogs;
 import com.codingcat.changelogs.base.data.ChangelogStorage;
-import io.papermc.paper.registry.RegistryAccess;
-import io.papermc.paper.registry.RegistryKey;
+import com.codingcat.changelogs.platformapi.item.NativeItemManager;
+import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.key.InvalidKeyException;
 import net.kyori.adventure.key.Key;
-import org.bukkit.Bukkit;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.ItemType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.yaml.snakeyaml.Yaml;
@@ -86,7 +83,7 @@ public class PluginConfig extends Yaml {
     }
 
     @SuppressWarnings("PatternValidation")
-    private static @NotNull ItemStack createStack(@NotNull String input) {
+    private @NotNull ItemStack createStack(@NotNull String input) {
         String idPart = input.contains("[") ? input.substring(0, input.indexOf('[')) : input;
         String componentPart = input.contains("[") ? input.substring(input.indexOf('[')) : null;
         Key inputKey;
@@ -95,13 +92,10 @@ public class PluginConfig extends Yaml {
         } catch (InvalidKeyException e) {
             throw new RuntimeException("Invalid item ID \"" + idPart + "\"", e);
         }
-        ItemType type = RegistryAccess.registryAccess().getRegistry(RegistryKey.ITEM).get(inputKey);
-        Objects.requireNonNull(type, "Unknown item ID \"" + idPart + "\"");
-        ItemStack stack = type.createItemStack();
-        if (componentPart != null) {
-            //noinspection deprecation
-            stack = Bukkit.getUnsafe().modifyItemStack(stack, componentPart);
-        }
-        return stack;
+        NativeItemManager nativeManager = this.plugin.getPlatform().getNativeItemManager();
+        Object nativeStack = nativeManager.createNativeStack(inputKey, 1);
+        Objects.requireNonNull(nativeStack, "Unknown item ID \"" + idPart + "\"");
+        if (componentPart != null) nativeStack = nativeManager.applyComponentStr(nativeStack, componentPart);
+        return (ItemStack) nativeManager.adaptToPEStack(nativeStack);
     }
 }
