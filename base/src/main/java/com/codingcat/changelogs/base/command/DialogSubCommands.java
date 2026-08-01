@@ -43,7 +43,7 @@ public class DialogSubCommands {
         public @NotNull LiteralCommandNode<Object> build(@NotNull ServerChangelogs plugin) {
             ICommandManager commandManager = plugin.getPlatform().getCommandManager();
             return literal(this.name)
-                    .requires(BrigadierCommandNode.requirePermission(this.permission, commandManager, permissionEnabledByDefault))
+                    .requires(BrigadierCommandNode.requirePermission(this.permission, plugin, permissionEnabledByDefault))
                     .executes(ctx -> {
                         ICommandSource source = commandManager.adaptPlatformSource(ctx.getSource());
                         if (source.getExecutingPlayer() == null) {

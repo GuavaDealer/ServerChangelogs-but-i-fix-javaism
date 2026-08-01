@@ -30,6 +30,14 @@ date_timezone: "UTC"
 # NOTE: Changing this setting requires a restart of your server!
 register_dedicated_command: true
 
+# Whether to use the native fallback permission system of the current platform.
+# On regular paper servers, this will use the vanilla OP system instead of
+# permissions provided by bukkit/a plugin like LuckPerms.
+# NOTE: This is not supported on platforms that do not have such a native
+# system, and instead rely on permissions only (like Velocity)!
+# Changing this setting requires a restart of your server.
+use_native_fallback_permissions: false
+
 # Whether to add a header section to the changelog dialog that will show
 # above the actual changelogs. This can be used to give players a bit of context,
 # or link to e.g. a discord to give feedback, follow announcements, etc.

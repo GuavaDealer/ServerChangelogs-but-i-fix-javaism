@@ -94,9 +94,9 @@ public final class ServerChangelogs extends Entrypoint {
 
     private void registerCommands(@NotNull ICommandManager commandManager) {
         LiteralCommandNode<Object> rootNode = literal(NAMESPACE)
-                .requires(requirePermission("command", commandManager, false))
+                .requires(requirePermission("command", this, false))
                 .executes(ctx -> {
-                    commandManager.adaptPlatformSource(ctx).asAudience().sendMessage(translatable("command.root"));
+                    commandManager.adaptPlatformSource(ctx.getSource()).asAudience().sendMessage(translatable("command.root"));
                     return Command.SINGLE_SUCCESS;
                 }).build();
         BrigadierCommandNode.SUB_COMMANDS.forEach(c -> rootNode.addChild(c.build(this)));

@@ -21,9 +21,9 @@ public class ReloadSubCommand implements BrigadierCommandNode {
     public @NotNull LiteralCommandNode<Object> build(@NotNull ServerChangelogs plugin) {
         ICommandManager commandManager = plugin.getPlatform().getCommandManager();
         return literal("reload")
-                .requires(BrigadierCommandNode.requirePermission("command.reload", commandManager, false))
+                .requires(BrigadierCommandNode.requirePermission("command.reload", plugin, false))
                 .executes(ctx -> {
-                    Audience audience = commandManager.adaptPlatformSource(ctx).asAudience();
+                    Audience audience = commandManager.adaptPlatformSource(ctx.getSource()).asAudience();
                     long time = System.currentTimeMillis();
                     Component errorMsg = null;
                     try {

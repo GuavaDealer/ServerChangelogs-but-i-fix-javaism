@@ -69,6 +69,10 @@ public class PluginConfig extends Yaml {
         return getBoolean("dialog_header", true);
     }
 
+    public boolean useNativeFallbackPermissions() {
+        return getBoolean("use_native_fallback_permissions", false);
+    }
+
     public @Nullable ItemStack createChangelogHeaderStack() {
         String value = getString("dialog_header_item", null);
         return value != null ? createStack(value) : null;
