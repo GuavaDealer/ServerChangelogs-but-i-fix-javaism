@@ -1,7 +1,6 @@
 package com.codingcat.changelogs.base.dialog;
 
 import com.codingcat.changelogs.platformapi.player.IPlayer;
-import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.dialog.CommonDialogData;
 import com.github.retrooper.packetevents.protocol.dialog.Dialog;
 import com.github.retrooper.packetevents.protocol.dialog.DialogAction;
@@ -12,6 +11,7 @@ import com.github.retrooper.packetevents.protocol.dialog.body.PlainMessage;
 import com.github.retrooper.packetevents.protocol.dialog.body.PlainMessageDialogBody;
 import com.github.retrooper.packetevents.protocol.dialog.button.ActionButton;
 import com.github.retrooper.packetevents.protocol.dialog.button.CommonButtonData;
+import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import com.github.retrooper.packetevents.wrapper.configuration.server.WrapperConfigServerClearDialog;
 import com.github.retrooper.packetevents.wrapper.configuration.server.WrapperConfigServerShowDialog;
@@ -49,7 +49,8 @@ public final class DialogPackets {
     }
 
     private static void packet(@NotNull IPlayer player, @NotNull PacketWrapper<?> wrapper) {
-        PacketEvents.getAPI().getPlayerManager().sendPacket(player.unwrapNative(), wrapper);
+        User user = (User) player.asPacketEventsUser();
+        user.sendPacket(wrapper);
     }
 
     public enum PacketPhase {

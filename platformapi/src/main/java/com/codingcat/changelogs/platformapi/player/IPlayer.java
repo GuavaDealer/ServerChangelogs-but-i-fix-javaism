@@ -19,4 +19,6 @@ public interface IPlayer extends IBasePermissionHolderAudienceWrapper {
     @NotNull TriState isNativeAdmin();
 
     void kick(@Nullable Component reason);
+
+    @NotNull Object asPacketEventsUser();
 }
