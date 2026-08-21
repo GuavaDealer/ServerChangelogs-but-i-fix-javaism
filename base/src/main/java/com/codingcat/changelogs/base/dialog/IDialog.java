@@ -16,6 +16,11 @@ import java.util.function.Consumer;
 public interface IDialog {
     @NotNull Dialog build(@NotNull IPlayer player, @NotNull DialogSessionManager sessionManager);
 
+    default void showTo(@NotNull IPlayer player, @NotNull DialogSessionManager sessionManager, @NotNull Object session, @NotNull DialogPackets.PacketPhase packetPhase) {
+        sessionManager.startSession(this, player, session);
+        this.showTo(player, sessionManager, packetPhase);
+    }
+
     default void showTo(@NotNull IPlayer player, @NotNull DialogSessionManager sessionManager, @NotNull DialogPackets.PacketPhase packetPhase) {
         Dialog dialog = this.build(player, sessionManager);
         DialogPackets.showDialog(player, dialog, packetPhase);
