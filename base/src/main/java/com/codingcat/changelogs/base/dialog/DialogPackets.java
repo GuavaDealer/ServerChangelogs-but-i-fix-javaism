@@ -17,10 +17,17 @@ import com.github.retrooper.packetevents.wrapper.configuration.server.WrapperCon
 import com.github.retrooper.packetevents.wrapper.configuration.server.WrapperConfigServerShowDialog;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerClearDialog;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerShowDialog;
+import lombok.RequiredArgsConstructor;
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.permission.PermissionChecker;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.util.TriState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
 
 import static com.codingcat.changelogs.base.lang.TranslationSource.translatableManual;
 
@@ -48,6 +55,10 @@ public final class DialogPackets {
         packet(player, packetPhase == PacketPhase.CONFIGURATION ? new WrapperConfigServerClearDialog() : new WrapperPlayServerClearDialog());
     }
 
+    public static @NotNull IPlayer wrapPacketEventsUser(@NotNull User user) {
+        return new PacketEventsUserWrappedPlayer(user);
+    }
+
     private static void packet(@NotNull IPlayer player, @NotNull PacketWrapper<?> wrapper) {
         User user = (User) player.asPacketEventsUser();
         user.sendPacket(wrapper);
@@ -56,5 +67,56 @@ public final class DialogPackets {
     public enum PacketPhase {
         CONFIGURATION,
         PLAY
+    }
+
+    @RequiredArgsConstructor
+    private static class PacketEventsUserWrappedPlayer implements IPlayer {
+        private static final @NotNull RuntimeException EXCEPTION = new UnsupportedOperationException("Not supported on PacketEvents user wrapper");
+        private final @NotNull User user;
+
+        @Override
+        public @NotNull UUID getUniqueId() {
+            return this.user.getUUID();
+        }
+
+        @Override
+        public @NotNull Locale getClientLocale() {
+            throw EXCEPTION;
+        }
+
+        @Override
+        public boolean isFirstJoin() {
+            throw EXCEPTION;
+        }
+
+        @Override
+        public @NotNull TriState isNativeAdmin() {
+            throw EXCEPTION;
+        }
+
+        @Override
+        public void kick(@Nullable Component reason) {
+            throw EXCEPTION;
+        }
+
+        @Override
+        public @NotNull Object asPacketEventsUser() {
+            return this.user;
+        }
+
+        @Override
+        public @NotNull Audience asAudience() {
+            return Audience.empty();
+        }
+
+        @Override
+        public @NotNull PermissionChecker asPermissionChecker() {
+            throw EXCEPTION;
+        }
+
+        @Override
+        public @NotNull Object unwrapNative() {
+            return this.user;
+        }
     }
 }

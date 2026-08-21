@@ -40,13 +40,12 @@ public class DialogSessionManager implements PacketListener {
     private final @NotNull IPlayerManager playerManager;
     private @Nullable PacketListenerCommon selfListener;
 
-    public void handleCustomClick(@NotNull WrapperCommonClientCustomClickAction<?> packetWrapper, @NotNull Object source) {
+    public void handleCustomClick(@NotNull WrapperCommonClientCustomClickAction<?> packetWrapper, @NotNull IPlayer player) {
         Key key = packetWrapper.getId().key();
         int fSIdx, lSIdx;
         if (!key.namespace().equals(ServerChangelogs.NAMESPACE) || (fSIdx = key.value().indexOf('/')) == -1
                 || !key.value().startsWith("dialog/") || (fSIdx + 1) >= (lSIdx = key.value().lastIndexOf('/'))
                 || lSIdx == (key.value().length() - 1)) return;
-        IPlayer player = this.playerManager.fromNative(source);
         String dialogId = key.value().substring(fSIdx + 1, lSIdx);
         String actionId = key.value().substring(lSIdx + 1);
         if (!dialogId.equals(activeSessions.get(player.getUniqueId())) && !staticActions.contains(key)) return;
@@ -66,9 +65,19 @@ public class DialogSessionManager implements PacketListener {
     @Override
     public void onPacketReceive(@NotNull PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.CUSTOM_CLICK_ACTION)
-            handleCustomClick(new WrapperPlayClientCustomClickAction(event), event.getPlayer());
+            handleCustomClick(new WrapperPlayClientCustomClickAction(event), playerFromPacket(event));
         if (event.getPacketType() == PacketType.Configuration.Client.CUSTOM_CLICK_ACTION)
-            handleCustomClick(new WrapperConfigClientCustomClickAction(event), event.getPlayer());
+            handleCustomClick(new WrapperConfigClientCustomClickAction(event), playerFromPacket(event));
+    }
+
+    private @NotNull IPlayer playerFromPacket(@NotNull PacketReceiveEvent event) {
+        try {
+            return this.playerManager.fromNative(event.getPlayer());
+        } catch (IllegalArgumentException _) {
+            // If obtaining the native IPlayer implementation fails (e.g. during the configuration phase,
+            // where event.getPlayer() can return null), fall back to a wrapped PE User implementation.
+            return DialogPackets.wrapPacketEventsUser(event.getUser());
+        }
     }
 
     public void registerEvents() {
