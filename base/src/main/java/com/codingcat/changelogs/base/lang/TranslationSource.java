@@ -46,11 +46,11 @@ public final class TranslationSource {
         logger.info("Reloading translation store...");
         File[] files = sourceDirectory.toFile().listFiles(p -> p.getName().endsWith(".yml") || p.getName().endsWith(".yaml"));
         if (files == null) {
-            logger.warn("Failed to find translation directory, no translations will be loaded!");
+            logger.warn("Failed to find translation directory, no translations will be loaded! (Restart the server to re-generate the defaults!)");
             return;
         }
         if (files.length == 0) {
-            logger.warn("No translation files present, unable to load language!");
+            logger.warn("No translation files present, unable to load language! (Delete the \"lang\" directory and restart the server to re-generate the defaults!)");
             return;
         }
         Map<String, Map<String, String>> rawTranslations = new HashMap<>();
