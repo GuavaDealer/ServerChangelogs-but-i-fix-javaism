@@ -20,6 +20,8 @@ import com.github.retrooper.packetevents.wrapper.configuration.client.WrapperCon
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientCustomClickAction;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.nbt.api.BinaryTagHolder;
+import net.kyori.adventure.text.event.ClickEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,6 +38,7 @@ import java.util.function.Supplier;
 @RequiredArgsConstructor
 public class DialogSessionManager implements PacketListener {
     private static final @NotNull Function<String, Key> KEY_GENERATOR = path -> ServerChangelogs.KEY_GENERATOR.apply("dialog/" + path);
+    public static final @NotNull BinaryTagHolder NONE_TAG_HOLDER = BinaryTagHolder.binaryTagHolder("");
     private final Set<Key> staticActions = ConcurrentHashMap.newKeySet();
     private final Map<UUID, String> activeSessions = new ConcurrentHashMap<>();
     private final Map<UUID, Object> sessionData = new ConcurrentHashMap<>();
@@ -93,16 +96,33 @@ public class DialogSessionManager implements PacketListener {
         this.selfListener = null;
     }
 
-    public @NotNull Action createStatic(@NotNull IDialog dialog, @NotNull String id) {
-        Key key = KEY_GENERATOR.apply(dialog.getId() + "/" + id);
-        this.staticActions.add(key);
+    public @NotNull Action createStaticAction(@NotNull IDialog dialog, @NotNull String id) {
+        Key key = this.createStaticKey(dialog, id);
         return new StaticAction(new CustomClickEvent(new ResourceLocation(key), null));
     }
 
-    public @NotNull Action createSessionBased(@NotNull IDialog dialog, @NotNull String id, boolean includeInputs) {
-        Key key = KEY_GENERATOR.apply(dialog.getId() + "/" + id);
+    public @NotNull ClickEvent<?> createStaticClickEvent(@NotNull IDialog dialog, @NotNull String id) {
+        return ClickEvent.custom(this.createStaticKey(dialog, id), NONE_TAG_HOLDER);
+    }
+
+    public @NotNull Action createSessionBasedAction(@NotNull IDialog dialog, @NotNull String id, boolean includeInputs) {
+        Key key = this.createSessionBasedKey(dialog, id);
         CustomClickEvent clickEvent = new CustomClickEvent(new ResourceLocation(key), null);
         return includeInputs ? new DynamicCustomAction(clickEvent.getId(), null) : new StaticAction(clickEvent);
+    }
+
+    public @NotNull ClickEvent<?> createSessionBasedClickEvent(@NotNull IDialog dialog, @NotNull String id) {
+        return ClickEvent.custom(this.createSessionBasedKey(dialog, id), NONE_TAG_HOLDER);
+    }
+
+    private @NotNull Key createSessionBasedKey(@NotNull IDialog dialog, @NotNull String id) {
+        return KEY_GENERATOR.apply(dialog.getId() + "/" + id);
+    }
+
+    private @NotNull Key createStaticKey(@NotNull IDialog dialog, @NotNull String id) {
+        Key key = this.createSessionBasedKey(dialog, id);
+        this.staticActions.add(key);
+        return key;
     }
 
     public void startSessionIfNoneActive(@NotNull IDialog dialog, @NotNull IPlayer player, @NotNull Supplier<Object> initialDataSupplier) {

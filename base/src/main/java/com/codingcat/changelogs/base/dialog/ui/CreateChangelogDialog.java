@@ -71,9 +71,9 @@ public class CreateChangelogDialog implements IDialog {
                 null, false, false,
                 DialogAction.NONE, body, inputs
         );
-        ActionButton yesBtn = new ActionButton(new CommonButtonData(translatableManual(p, "dialog.create.button.publish"), null, 160), sessionManager.createSessionBased(this, "publish", true));
-        ActionButton addLineBtn = new ActionButton(new CommonButtonData(translatableManual(p, "dialog.create.button.add_line"), null, 100), sessionManager.createSessionBased(this, "add_line", true));
-        ActionButton cancelBtn = new ActionButton(new CommonButtonData(translatableManual(p, "dialog.create.button.cancel"), null, 100), sessionManager.createSessionBased(this, "close", false));
+        ActionButton yesBtn = new ActionButton(new CommonButtonData(translatableManual(p, "dialog.create.button.publish"), null, 160), sessionManager.createSessionBasedAction(this, "publish", true));
+        ActionButton addLineBtn = new ActionButton(new CommonButtonData(translatableManual(p, "dialog.create.button.add_line"), null, 100), sessionManager.createSessionBasedAction(this, "add_line", true));
+        ActionButton cancelBtn = new ActionButton(new CommonButtonData(translatableManual(p, "dialog.create.button.cancel"), null, 100), sessionManager.createSessionBasedAction(this, "close", false));
         return new MultiActionDialog(common, List.of(yesBtn, addLineBtn), cancelBtn, 3);
     }
 
@@ -135,7 +135,7 @@ public class CreateChangelogDialog implements IDialog {
     }
 
     private void showRetry(@NotNull IPlayer source, @NotNull String errorPart, @NotNull DialogSessionManager sessionManager) {
-        DialogPackets.showSimpleNotice(source, TITLE_KEY, "dialog.create.error." + errorPart, sessionManager.createSessionBased(this, "retry", false), DialogPackets.PacketPhase.PLAY);
+        DialogPackets.showSimpleNotice(source, TITLE_KEY, "dialog.create.error." + errorPart, sessionManager.createSessionBasedAction(this, "retry", false), DialogPackets.PacketPhase.PLAY);
     }
 
     private record EditorState(

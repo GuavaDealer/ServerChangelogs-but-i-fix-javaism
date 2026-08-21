@@ -65,7 +65,7 @@ public class ChangelogDialog implements IDialog {
         ActionButton button = new ActionButton(new CommonButtonData(
                 translatableManual(p, "dialog.changelog.button.close"),
                 null, 60
-        ), sessionManager.createStatic(this, "confirm_read"));
+        ), sessionManager.createStaticAction(this, "confirm_read"));
         return new NoticeDialog(common, button);
     }
 
