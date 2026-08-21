@@ -56,7 +56,12 @@ dialog: # Translations for the plugin's dialog UIs
       author: "Author <gray>(optional)</gray>"
     button:
       add_line: "<translate:icon.speech_bubble> <green><b>Add Line"
+      edit_line: "<translate:icon.confirm> <light_purple><b>Edit Line"
       cancel: "<translate:icon.deny> <red><b>Cancel"
+    line_action:
+      format: "<dark_gray>[<arg:0>]"
+      edit: "<light_purple><hover:show_text:'<light_purple>✎ Edit line'>✎"
+      remove: "<red><hover:show_text:'<red>❌ Remove line'>❌"
     error:
       create:
         internal_error: "<translate:icon.deny> <red>An internal error occurred while trying to publish your dialog.\n\nMore details have been logged to the server's console."

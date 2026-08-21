@@ -14,7 +14,9 @@ import com.github.retrooper.packetevents.protocol.dialog.action.DynamicCustomAct
 import com.github.retrooper.packetevents.protocol.dialog.action.StaticAction;
 import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.util.NbtCodecException;
 import com.github.retrooper.packetevents.resources.ResourceLocation;
+import com.github.retrooper.packetevents.util.adventure.NbtTagHolder;
 import com.github.retrooper.packetevents.wrapper.common.client.WrapperCommonClientCustomClickAction;
 import com.github.retrooper.packetevents.wrapper.configuration.client.WrapperConfigClientCustomClickAction;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientCustomClickAction;
@@ -64,6 +66,8 @@ public class DialogSessionManager implements PacketListener {
         }
         try {
             dialog.onActionTriggered(actionId, (NBTCompound) packetWrapper.getPayload(), player, this);
+        } catch (NbtCodecException _) {
+            // Ignore invalid or unexpected NBT payloads like malicious packets sent by a modified client
         } catch (Exception e) {
             throw new RuntimeException("Failed to run dialog action handler for \"" + dialogId + "\"", e);
         }
@@ -112,7 +116,11 @@ public class DialogSessionManager implements PacketListener {
     }
 
     public @NotNull ClickEvent<?> createSessionBasedClickEvent(@NotNull IDialog dialog, @NotNull String id) {
-        return ClickEvent.custom(this.createSessionBasedKey(dialog, id), NONE_TAG_HOLDER);
+        return ClickEvent.custom(this.createSessionBasedKey(dialog, id), null);
+    }
+
+    public @NotNull ClickEvent<?> createSessionBasedClickEvent(@NotNull IDialog dialog, @NotNull String id, @Nullable NBTCompound data) {
+        return ClickEvent.custom(this.createSessionBasedKey(dialog, id), data != null ? new NbtTagHolder(data) : NONE_TAG_HOLDER);
     }
 
     private @NotNull Key createSessionBasedKey(@NotNull IDialog dialog, @NotNull String id) {

@@ -22,6 +22,7 @@ import java.util.List;
 public abstract class EditorSession {
     private final @NotNull List<String> rawLines = new ArrayList<>();
     private final int entryUID;
+    private int editingLineIndex = -1;
     private @NotNull String currentLine = "";
     private @NotNull String author = "";
 

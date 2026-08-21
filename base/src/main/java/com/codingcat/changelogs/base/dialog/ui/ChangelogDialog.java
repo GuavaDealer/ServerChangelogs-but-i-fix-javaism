@@ -27,6 +27,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.BiFunction;
 
 import static com.codingcat.changelogs.base.lang.TranslationSource.translatable;
 import static com.codingcat.changelogs.base.lang.TranslationSource.translatableManual;
@@ -47,7 +48,7 @@ public class ChangelogDialog implements IDialog {
         List<DialogBody> body = this.storage.listEntries()
                 .reversed().stream()
                 .map(e -> translatableManual(p, "dialog.changelog.entry" + (!e.hasRead(p) ? "_unread" : ""),
-                        text(dateFormatter.format(e.recordedAt())), createLinesComponent(p, e.lines()), Objects.requireNonNullElse(e.author(), authorNull)))
+                        text(dateFormatter.format(e.recordedAt())), createLinesComponent(p, null, e.lines()), Objects.requireNonNullElse(e.author(), authorNull)))
                 .map(c -> (DialogBody) new PlainMessageDialogBody(new PlainMessage(c, LINE_WIDTH)))
                 .toList();
         if (body.isEmpty())
@@ -69,14 +70,15 @@ public class ChangelogDialog implements IDialog {
         return new NoticeDialog(common, button);
     }
 
-    public static @NotNull Component createLinesComponent(@NotNull IPlayer player, @NotNull List<Component> lines) {
+    public static @NotNull Component createLinesComponent(@NotNull IPlayer player, @Nullable BiFunction<Component, Integer, Component> mapper, @NotNull List<Component> lines) {
+        if (mapper == null) mapper = (c, _) -> c;
         Component component = Component.empty();
-        List<Component> newLines = lines.stream()
-                .map(l -> translatableManual(player, "dialog.changelog.entry_line", l))
-                .toList();
-        for (Component line : newLines) {
+        for (int i = 0; i < lines.size(); i++) {
+            Component line = lines.get(i);
+            line = translatableManual(player, "dialog.changelog.entry_line", line);
+            line = mapper.apply(line, i);
             component = component.append(line);
-            if (newLines.indexOf(line) < newLines.size() - 1) component = component.appendNewline();
+            if (i < lines.size() - 1) component = component.appendNewline();
         }
         return component;
     }

@@ -22,16 +22,21 @@ import com.github.retrooper.packetevents.protocol.dialog.input.TextInputControl;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
+import com.github.retrooper.packetevents.protocol.nbt.NBTInt;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static com.codingcat.changelogs.base.dialog.ui.ChangelogDialog.createLinesComponent;
+import static com.codingcat.changelogs.base.lang.TranslationSource.translatable;
 import static com.codingcat.changelogs.base.lang.TranslationSource.translatableManual;
 import static net.kyori.adventure.text.Component.text;
 
@@ -48,12 +53,29 @@ public class ChangelogEditorDialog implements IDialog {
         EditorSession session = sessionManager.getSessionData(p, EditorSession.class);
         String sessionTranslation = "dialog.editor." + session.getId();
         List<Component> previewLines = session.deserializeLines();
+        BiFunction<Component, Integer, Component> lineMapper = (line, idx) -> {
+            boolean isEditing = session.getEditingLineIndex() == idx;
+            if (isEditing) line = line.decoration(TextDecoration.BOLD, true);
+            String prefix = "dialog.editor.line_action.";
+            NBTCompound payload = new NBTCompound();
+            payload.setTag("target_line", new NBTInt(idx));
+            Component edit = null;
+            if (!isEditing) edit = translatableManual(p, prefix + "format", translatable(prefix + "edit"))
+                    .decoration(TextDecoration.BOLD,false)
+                    .clickEvent(sessionManager.createSessionBasedClickEvent(this, "start_edit_line", payload));
+            Component remove = translatableManual(p, prefix + "format", translatable(prefix + "remove"))
+                    .decoration(TextDecoration.BOLD,false)
+                    .clickEvent(sessionManager.createSessionBasedClickEvent(this, "remove_line", payload));
+            Component finalCmp = line.appendSpace();
+            if (!isEditing) finalCmp = finalCmp.append(edit).appendSpace();
+            return finalCmp.append(remove);
+        };
         List<DialogBody> body = List.of(
                 new ItemDialogBody(ItemStack.builder().type(ItemTypes.WRITABLE_BOOK).build(),
                         new PlainMessage(translatableManual(p, sessionTranslation + ".subtitle", text(session.getEntryUID() + 1)), 160),
                         false, false, 15, 15),
                 new PlainMessageDialogBody(new PlainMessage(translatableManual(p, "dialog.editor.hint"), ChangelogDialog.LINE_WIDTH)),
-                new PlainMessageDialogBody(new PlainMessage(!previewLines.isEmpty() ? createLinesComponent(p, previewLines) : translatableManual(p, "dialog.editor.empty_preview"), ChangelogDialog.LINE_WIDTH))
+                new PlainMessageDialogBody(new PlainMessage(!previewLines.isEmpty() ? createLinesComponent(p, lineMapper, previewLines) : translatableManual(p, "dialog.editor.empty_preview"), ChangelogDialog.LINE_WIDTH))
         );
         List<Input> inputs = List.of(
                 new Input("line", new TextInputControl(350, translatableManual(p, "dialog.editor.input.contents"),
@@ -65,10 +87,12 @@ public class ChangelogEditorDialog implements IDialog {
                 null, false, false,
                 DialogAction.NONE, body, inputs
         );
-        ActionButton yesBtn = new ActionButton(new CommonButtonData(translatableManual(p, sessionTranslation + ".commit_button"), null, 160), sessionManager.createSessionBasedAction(this, "commit", true));
-        ActionButton addLineBtn = new ActionButton(new CommonButtonData(translatableManual(p, "dialog.editor.button.add_line"), null, 100), sessionManager.createSessionBasedAction(this, "add_line", true));
+        List<ActionButton> buttons = new ArrayList<>();
+        buttons.add(new ActionButton(new CommonButtonData(translatableManual(p, sessionTranslation + ".commit_button"), null, 160), sessionManager.createSessionBasedAction(this, "commit", true)));
+        String lineAction = session.getEditingLineIndex() != -1 ? "edit_line" : "add_line";
+        buttons.add(new ActionButton(new CommonButtonData(translatableManual(p, "dialog.editor.button." + lineAction), null, 100), sessionManager.createSessionBasedAction(this, lineAction, true)));
         ActionButton cancelBtn = new ActionButton(new CommonButtonData(translatableManual(p, "dialog.editor.button.cancel"), null, 100), sessionManager.createSessionBasedAction(this, "close", false));
-        return new MultiActionDialog(common, List.of(yesBtn, addLineBtn), cancelBtn, 3);
+        return new MultiActionDialog(common, buttons, cancelBtn, 3);
     }
 
     @Override
@@ -86,18 +110,42 @@ public class ChangelogEditorDialog implements IDialog {
                 DialogPackets.clearDialog(source, DialogPackets.PacketPhase.PLAY);
             }
             case "retry" -> this.showTo(source, sessionManager, DialogPackets.PacketPhase.PLAY);
-            case "add_line" -> {
-                if (data == null) return;
+            case "add_line", "edit_line" -> {
+                if (action.equals("edit_line") && (session.getEditingLineIndex() == -1)) return;
+                boolean removed = false;
                 if (session.getCurrentLine().isBlank()) {
-                    this.showRetry(source, "add_empty_line", session, sessionManager);
-                    return;
+                    if (action.equals("add_line")) {
+                        this.showRetry(source, "add_empty_line", session, sessionManager);
+                        return;
+                    } else {
+                        session.getRawLines().remove(session.getEditingLineIndex());
+                        removed = true;
+                    }
                 }
-                session.getRawLines().add(session.getCurrentLine());
+                if (action.equals("edit_line")) {
+                    if (!removed) session.getRawLines().set(session.getEditingLineIndex(), session.getCurrentLine());
+                    session.setEditingLineIndex(-1);
+                } else session.getRawLines().add(session.getCurrentLine());
                 session.setCurrentLine("");
                 this.showTo(source, sessionManager, DialogPackets.PacketPhase.PLAY);
             }
+            case "start_edit_line", "remove_line" -> {
+                if (data == null) return;
+                int lineIdx = data.getNumberTagValueOrThrow("target_line").intValue();
+                if (lineIdx < 0 || lineIdx >= session.getRawLines().size()) return;
+                if (action.equals("start_edit_line")) {
+                    String line = session.getRawLines().get(lineIdx);
+                    session.setCurrentLine(line);
+                    session.setEditingLineIndex(lineIdx);
+                } else {
+                    if (session.getEditingLineIndex() == lineIdx) session.setEditingLineIndex(-1);
+                    session.getRawLines().remove(lineIdx);
+                    session.setCurrentLine("");
+                }
+                this.showTo(source, sessionManager, DialogPackets.PacketPhase.PLAY);
+            }
             case "commit" -> {
-                if ((useFallbackPermissions && !source.isNativeAdmin().toBooleanOrElse(false)) || (!useFallbackPermissions && !source.hasPermission(ServerChangelogs.NAMESPACE + ".command.create"))) {
+                if (!permissionCheck("command." + session.getId(), source)) {
                     sessionManager.endSession(source);
                     DialogPackets.showSimpleNotice(source, TITLE_KEY.apply(session), "dialog.editor.error.no_permission");
                     return;
@@ -121,5 +169,9 @@ public class ChangelogEditorDialog implements IDialog {
 
     private void showRetry(@NotNull IPlayer source, @NotNull String errorPart, @NotNull EditorSession session, @NotNull DialogSessionManager sessionManager) {
         DialogPackets.showSimpleNotice(source, TITLE_KEY.apply(session), "dialog.editor.error." + errorPart, sessionManager.createSessionBasedAction(this, "retry", false), DialogPackets.PacketPhase.PLAY);
+    }
+
+    private boolean permissionCheck(@NotNull String permission, @NotNull IPlayer source) {
+        return useFallbackPermissions ? source.isNativeAdmin().toBooleanOrElse(false) : source.hasPermission(ServerChangelogs.NAMESPACE + "." + permission);
     }
 }
