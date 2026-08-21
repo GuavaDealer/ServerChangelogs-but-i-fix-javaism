@@ -2,7 +2,7 @@ package com.codingcat.changelogs.base.dialog;
 
 import com.codingcat.changelogs.base.ServerChangelogs;
 import com.codingcat.changelogs.base.dialog.ui.ChangelogDialog;
-import com.codingcat.changelogs.base.dialog.ui.CreateChangelogDialog;
+import com.codingcat.changelogs.base.dialog.ui.editor.ChangelogEditorDialog;
 import com.codingcat.changelogs.platformapi.player.IPlayer;
 import com.github.retrooper.packetevents.protocol.dialog.Dialog;
 import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
@@ -33,7 +33,7 @@ public interface IDialog {
         public void recreate() {
             Consumer<IDialog> register = d -> this.dialogMap.put(d.getId(), d);
             this.dialogMap.clear();
-            register.accept(new CreateChangelogDialog(
+            register.accept(new ChangelogEditorDialog(
                     plugin.getChangelogStorage(),
                     plugin.pluginConfig().useNativeFallbackPermissions()
             ));

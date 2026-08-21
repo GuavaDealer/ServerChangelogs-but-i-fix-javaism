@@ -34,7 +34,7 @@ import static net.kyori.adventure.text.Component.text;
 
 @RequiredArgsConstructor
 public class ChangelogDialog implements IDialog {
-    static final int LINE_WIDTH = 440;
+    public static final int LINE_WIDTH = 440;
     private final @Getter String id = "changelog_view";
     private final @NotNull ChangelogStorage storage;
     private final @NotNull DateTimeFormatter dateFormatter;
@@ -69,7 +69,7 @@ public class ChangelogDialog implements IDialog {
         return new NoticeDialog(common, button);
     }
 
-    static @NotNull Component createLinesComponent(@NotNull IPlayer player, @NotNull List<Component> lines) {
+    public static @NotNull Component createLinesComponent(@NotNull IPlayer player, @NotNull List<Component> lines) {
         Component component = Component.empty();
         List<Component> newLines = lines.stream()
                 .map(l -> translatableManual(player, "dialog.changelog.entry_line", l))

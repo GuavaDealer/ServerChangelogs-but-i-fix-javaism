@@ -1,4 +1,4 @@
-package com.codingcat.changelogs.base.dialog.ui;
+package com.codingcat.changelogs.base.dialog.ui.editor;
 
 import com.codingcat.changelogs.base.ServerChangelogs;
 import com.codingcat.changelogs.base.data.ChangelogEntry;
@@ -6,6 +6,7 @@ import com.codingcat.changelogs.base.data.ChangelogStorage;
 import com.codingcat.changelogs.base.dialog.DialogPackets;
 import com.codingcat.changelogs.base.dialog.DialogSessionManager;
 import com.codingcat.changelogs.base.dialog.IDialog;
+import com.codingcat.changelogs.base.dialog.ui.ChangelogDialog;
 import com.codingcat.changelogs.platformapi.player.IPlayer;
 import com.github.retrooper.packetevents.protocol.dialog.CommonDialogData;
 import com.github.retrooper.packetevents.protocol.dialog.Dialog;
@@ -40,7 +41,7 @@ import static com.codingcat.changelogs.base.lang.TranslationSource.translatableM
 import static net.kyori.adventure.text.Component.text;
 
 @RequiredArgsConstructor
-public class CreateChangelogDialog implements IDialog {
+public class ChangelogEditorDialog implements IDialog {
     private static final @NotNull String TITLE_KEY = "dialog.create.title";
     private final @Getter String id = "changelog_editor";
     private final @NotNull ChangelogStorage storage;
@@ -138,7 +139,7 @@ public class CreateChangelogDialog implements IDialog {
         DialogPackets.showSimpleNotice(source, TITLE_KEY, "dialog.create.error." + errorPart, sessionManager.createSessionBasedAction(this, "retry", false), DialogPackets.PacketPhase.PLAY);
     }
 
-    private record EditorState(
+    public record EditorState(
             @NotNull List<String> mmLineSources,
             @NotNull AtomicReference<String> currentLineSource,
             @NotNull AtomicReference<String> authorSource

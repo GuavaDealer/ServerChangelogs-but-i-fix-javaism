@@ -3,7 +3,7 @@ package com.codingcat.changelogs.base.command;
 import com.codingcat.changelogs.base.ServerChangelogs;
 import com.codingcat.changelogs.base.dialog.DialogPackets;
 import com.codingcat.changelogs.base.dialog.ui.ChangelogDialog;
-import com.codingcat.changelogs.base.dialog.ui.CreateChangelogDialog;
+import com.codingcat.changelogs.base.dialog.ui.editor.ChangelogEditorDialog;
 import com.codingcat.changelogs.base.dialog.IDialog;
 import com.codingcat.changelogs.platformapi.command.ICommandManager;
 import com.codingcat.changelogs.platformapi.command.ICommandSource;
@@ -22,7 +22,7 @@ import static com.mojang.brigadier.builder.LiteralArgumentBuilder.literal;
 public class DialogSubCommands {
     public static @NotNull Set<BrigadierCommandNode> withDialogs(@NotNull BrigadierCommandNode... commands) {
         Set<BrigadierCommandNode> commandSet = new HashSet<>();
-        commandSet.add(new Command("create", "command.create", false, CreateChangelogDialog.class));
+        commandSet.add(new Command("create", "command.create", false, ChangelogEditorDialog.class));
         commandSet.add(new Command("view", "command.view", true, ChangelogDialog.class));
         commandSet.addAll(Arrays.stream(commands).toList());
         return commandSet;
