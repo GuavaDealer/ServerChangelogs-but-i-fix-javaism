@@ -38,6 +38,12 @@ register_dedicated_command: true
 # Changing this setting requires a restart of your server.
 use_native_fallback_permissions: false
 
+# The connection phase in which the dialog will be sent.
+# PLAY means that the dialog will be shown to the player once they've joined the world fully.
+# CONFIGURATION will show the dialog earlier, during the connection phase (the player won't be in the world)
+# The CONFIGURATION phase has the advantage of players not being able to take damage etc. due to the dialogs.
+dialog_phase: CONFIGURATION
+
 # Whether to add a header section to the changelog dialog that will show
 # above the actual changelogs. This can be used to give players a bit of context,
 # or link to e.g. a discord to give feedback, follow announcements, etc.

@@ -2,6 +2,7 @@ package com.codingcat.changelogs.base.config;
 
 import com.codingcat.changelogs.base.ServerChangelogs;
 import com.codingcat.changelogs.base.data.ChangelogStorage;
+import com.codingcat.changelogs.base.dialog.DialogPackets;
 import com.codingcat.changelogs.platformapi.item.NativeItemManager;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +44,7 @@ public class PluginConfig extends Yaml {
 
     public @Nullable String validate() {
         try {
+            getDialogPacketPhase();
             createChangelogStorage();
             getDateFormatter();
             createChangelogHeaderStack();
@@ -63,6 +65,15 @@ public class PluginConfig extends Yaml {
 
     public boolean registerDedicatedCommand() {
         return getBoolean("register_dedicated_command", true);
+    }
+
+    public @NotNull DialogPackets.PacketPhase getDialogPacketPhase() {
+        String rawPhase = getString("dialog_phase", DialogPackets.PacketPhase.PLAY.name());
+        try {
+            return DialogPackets.PacketPhase.valueOf(rawPhase);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid dialog phase \"" + rawPhase + "\"");
+        }
     }
 
     public boolean showChangelogHeader() {
