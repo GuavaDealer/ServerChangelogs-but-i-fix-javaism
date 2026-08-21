@@ -23,32 +23,51 @@ command: # Translations for the plugin's commands
       io: "<prefix><red>An unexpected I/O error occurred while trying to reload, check the console for more details!"
       details: "<red>Details for unexpected reload error:"
       invalid: "<prefix><red>Invalid configuration: <yellow><arg:0>"
+icon: # General icon definitions, this can be used to change icons everywhere while only changing a single value
+  confirm: "<sprite:gui:icon/checkmark>" # All icons are textures from the vanilla resource pack (gui atlas)
+  deny: "<sprite:gui:spectator/close>"
+  changelog: "<sprite:gui:icon/news>"
+  letter: "<sprite:gui:icon/draft_report>"
+  attention: "<sprite:gui:icon/unseen_notification>"
+  search: "<sprite:gui:icon/search>"
+  speech_bubble: "<sprite:gui:toast/social_interactions>"
 dialog: # Translations for the plugin's dialog UIs
   error: "<red>An unexpected error occurred while trying to process a dialog action:"
   popup:
-    close: "<sprite:gui:icon/checkmark> <green>Ok"
-  create: # The UI used to publish a new changelog
-    title: "<gradient:#a366ff:#9999ff><b>Create Changelog"
-    subtitle: "This action will <green>create</green> a new changelog entry <aqua>#<arg:0>"
+    close: "<translate:icon.confirm> <green>Ok"
+  editor: # The UI used to publish and edit changelogs
+    create: # Translations specific to the creation mode of the editor
+      title: "<gradient:#a366ff:#9999ff><b>Create Changelog"
+      subtitle: "This action will <green>create</green> a new changelog entry <aqua>#<arg:0>"
+      commit_button: "<translate:icon.changelog> <aqua><b>Publish Changelog"
+      success: "<translate:icon.confirm> <green>Successfully published a new changelog!"
+    edit: # Translations specific to the "edit existing" mode of the editor
+      title: "<gradient:#a366ff:#9999ff><b>Edit Changelog"
+      subtitle: "This action will <light_purple>update</light_purple> the content of changelog <aqua>#<arg:0>"
+      commit_button: "<translate:icon.letter> <aqua><b>Apply Changes"
+      success: "<translate:icon.confirm> <green>Changes applied successfully!"
     hint: |-
       Add <green>lines</green> to the new changelog below. Formatting in <rainbow>MiniMessage</rainbow> is supported!
       Dashes <gray>(<b>-</b>)</gray> are added automatically. Use <red>one line</red> to describe an <red>individual</red> change.
       You can see a <green>preview</green> of your new changelog below here:
-    empty_preview: "<sprite:gui:icon/search> <u><gray>Add a line using the text field below to see a preview."
+    empty_preview: "<translate:icon.search> <u><gray>Add a line using the text field below to see a preview."
     input:
       contents: "Line Content"
       author: "Author <gray>(optional)</gray>"
     button:
-      publish: "<sprite:gui:icon/news> <aqua><b>Publish Changelog"
-      add_line: "<sprite:gui:toast/social_interactions> <green><b>Add Line"
-      cancel: "<sprite:gui:spectator/close> <red><b>Cancel"
-    success: "<sprite:gui:icon/checkmark> <green>Successfully published a new changelog!"
+      add_line: "<translate:icon.speech_bubble> <green><b>Add Line"
+      cancel: "<translate:icon.deny> <red><b>Cancel"
     error:
-      no_lines: "<sprite:gui:spectator/close> <red>Please specify at least one changelog line."
-      add_empty_line: "<sprite:gui:spectator/close> <red>Please specify the content of the line first."
-      no_permission: "<sprite:gui:spectator/close> <red>You don't have permission to create changelogs!"
+      create:
+        internal_error: "<translate:icon.deny> <red>An internal error occurred while trying to publish your dialog.\n\nMore details have been logged to the server's console."
+      edit:
+        entry_deleted: "<translate:icon.deny> <red>The changelog entry has been deleted during editing."
+        internal_error: "<translate:icon.deny> <red>An internal error occurred while trying to apply your changes.\n\nMore details have been logged to the server's console."
+      no_lines: "<translate:icon.deny> <red>Please specify at least one changelog line."
+      add_empty_line: "<translate:icon.deny> <red>Please specify the content of the line first."
+      no_permission: "<translate:icon.deny> <red>You don't have permission to perform this action!"
   changelog: # The UI used by players to view the server's changelogs
-    title: "<sprite:gui:icon/news> <gradient:#a366ff:#9999ff><b>Server Changelog"
+    title: "<translate:icon.changelog> <gradient:#a366ff:#9999ff><b>Server Changelog"
     header: |-
       This menu shows you an overview of <green>what has changed</green> on our server recently!
       New server changes will appear <red>in red</red>.
@@ -66,7 +85,7 @@ dialog: # Translations for the plugin's dialog UIs
       
       <reset><gray>Published by <white><arg:2></white></gray>
     entry_unread: |-
-      <red><b><strikethrough>                         <reset> <sprite:gui:icon/unseen_notification> <gradient:green:red><u>Changelog from <arg:0></u></gradient> <sprite:gui:icon/unseen_notification> <red><b><strikethrough>                         
+      <red><b><strikethrough>                         <reset> <translate:icon.attention> <gradient:green:red><u>Changelog from <arg:0></u></gradient> <translate:icon.attention> <red><b><strikethrough>                         
       
       <reset><arg:1>
       
@@ -74,5 +93,5 @@ dialog: # Translations for the plugin's dialog UIs
     entry_line: "<gray>- <reset><arg:0>" # The format for a single changelog line (adds a gray dash in front)
     unspecified_author: "<dark_red>Unspecified" # The author that will be shown when this field was left empty during publishing
     button:
-      close: "<sprite:gui:icon/checkmark> <green>Exit"
-    read: "<prefix><sprite:gui:icon/checkmark> <green>Marked <yellow><arg:0></yellow> entries as read!"
+      close: "<translate:icon.confirm> <green>Exit"
+    read: "<prefix><translate:icon.confirm> <green>Marked <yellow><arg:0></yellow> entries as read!"
