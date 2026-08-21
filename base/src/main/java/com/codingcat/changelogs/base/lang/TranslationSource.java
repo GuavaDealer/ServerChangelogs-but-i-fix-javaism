@@ -154,7 +154,7 @@ public final class TranslationSource {
      * support for those yet (see <a href="https://github.com/PaperMC/Paper/issues/12971">this issue</a>)
      */
     public static @NotNull Component translatableManual(@NotNull IPlayer player, @NotNull String key, @NotNull ComponentLike... args) {
-        Component translation = GlobalTranslator.translator().translate(translatable(key, args), player.getClientLocale());
+        Component translation = GlobalTranslator.render(translatable(key, args), player.getClientLocale());
         return Objects.requireNonNullElseGet(translation, () -> text(ServerChangelogs.NAMESPACE + "." + key));
     }
 }
