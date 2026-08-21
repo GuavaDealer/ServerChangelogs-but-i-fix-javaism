@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.error.YAMLException;
 
@@ -44,6 +45,12 @@ public class YamlChangelogStorage implements ChangelogStorage {
     @Override
     public void storeEntry(@NotNull ChangelogEntry entry) {
         this.cache.add(entry.uid(), entry);
+        this.save();
+    }
+
+    @Override
+    public void updateEntry(@NotNull ChangelogEntry entry) {
+        this.cache.set(entry.uid(), entry);
         this.save();
     }
 
@@ -124,6 +131,15 @@ public class YamlChangelogStorage implements ChangelogStorage {
     @Override
     public @NotNull List<ChangelogEntry> listEntries() {
         return this.cache;
+    }
+
+    @Override
+    public @Nullable ChangelogEntry getByUID(int uid) {
+        try {
+            return this.cache.get(uid);
+        } catch (IndexOutOfBoundsException _) {
+            return null;
+        }
     }
 
     @Override

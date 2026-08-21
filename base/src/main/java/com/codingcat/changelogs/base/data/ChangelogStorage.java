@@ -3,6 +3,7 @@ package com.codingcat.changelogs.base.data;
 import com.codingcat.changelogs.base.ServerChangelogs;
 import com.codingcat.changelogs.base.data.storage.YamlChangelogStorage;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.UUID;
@@ -14,9 +15,13 @@ public interface ChangelogStorage {
 
     void storeEntry(@NotNull ChangelogEntry entry);
 
+    void updateEntry(@NotNull ChangelogEntry entry);
+
     boolean removeEntry(int uid);
 
     @NotNull List<ChangelogEntry> listEntries();
+
+    @Nullable ChangelogEntry getByUID(int uid);
 
     void markAsRead(int uid, @NotNull UUID player);
 
