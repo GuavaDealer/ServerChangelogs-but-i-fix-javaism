@@ -90,6 +90,7 @@ public class ChangelogDialog implements IDialog {
                 .map(ChangelogEntry::uid)
                 .toList();
         uids.forEach(uid -> storage.markAsRead(uid, source.getUniqueId()));
+        sessionManager.unfreeze(source);
         if (!uids.isEmpty()) source.asAudience().sendMessage(translatable("dialog.changelog.read", text(uids.size())));
     }
 }

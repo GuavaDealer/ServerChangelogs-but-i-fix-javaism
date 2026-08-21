@@ -26,6 +26,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -36,6 +39,7 @@ public class DialogSessionManager implements PacketListener {
     private final Set<Key> staticActions = ConcurrentHashMap.newKeySet();
     private final Map<UUID, String> activeSessions = new ConcurrentHashMap<>();
     private final Map<UUID, Object> sessionData = new ConcurrentHashMap<>();
+    private final Map<UUID, CompletableFuture<?>> frozenViewers = new ConcurrentHashMap<>();
     private final @NotNull IDialog.Holder dialogHolder;
     private final @NotNull IPlayerManager playerManager;
     private @Nullable PacketListenerCommon selfListener;
@@ -126,5 +130,20 @@ public class DialogSessionManager implements PacketListener {
 
     public <T> @NotNull T getSessionData(@NotNull IPlayer player, @NotNull Class<T> dataType) throws ClassCastException {
         return dataType.cast(this.sessionData.get(player.getUniqueId()));
+    }
+
+    public void unfreeze(@NotNull IPlayer player) {
+        CompletableFuture<?> future = this.frozenViewers.get(player.getUniqueId());
+        if (future != null) future.complete(null);
+    }
+
+    public void freezeAndWaitFor(@NotNull IPlayer player) {
+        CompletableFuture<?> future = new CompletableFuture<>();
+        this.frozenViewers.put(player.getUniqueId(), future);
+        try {
+            future.join();
+        } catch (CancellationException | CompletionException _) {
+        }
+        if (future.isDone()) this.frozenViewers.remove(player.getUniqueId());
     }
 }
