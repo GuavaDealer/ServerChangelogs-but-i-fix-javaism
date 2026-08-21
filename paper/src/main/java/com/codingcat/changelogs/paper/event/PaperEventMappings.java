@@ -1,14 +1,18 @@
 package com.codingcat.changelogs.paper.event;
 
+import com.codingcat.changelogs.paper.player.PaperConfigurationPhaseConnectionWrapper;
 import com.codingcat.changelogs.paper.player.PaperPlayerManager;
 import com.codingcat.changelogs.platformapi.event.impl.IEvent;
+import com.codingcat.changelogs.platformapi.event.impl.PlayerEnterConfigurationPhaseEvent;
 import com.codingcat.changelogs.platformapi.event.impl.PlayerJoinEvent;
+import io.papermc.paper.event.connection.configuration.AsyncPlayerConnectionConfigureEvent;
 import org.bukkit.event.Event;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 import java.util.function.Function;
 
+@SuppressWarnings("UnstableApiUsage")
 public final class PaperEventMappings {
     private final @NotNull Set<EventMapping<?, ?>> eventMappings;
 
@@ -18,6 +22,11 @@ public final class PaperEventMappings {
                         PlayerJoinEvent.class,
                         org.bukkit.event.player.PlayerJoinEvent.class,
                         ev -> new PlayerJoinEvent(pm.fromNative(ev.getPlayer()))
+                ),
+                new EventMapping<>(
+                        PlayerEnterConfigurationPhaseEvent.class,
+                        AsyncPlayerConnectionConfigureEvent.class,
+                        ev -> new PlayerEnterConfigurationPhaseEvent(new PaperConfigurationPhaseConnectionWrapper(ev.getConnection()))
                 )
         );
     }
