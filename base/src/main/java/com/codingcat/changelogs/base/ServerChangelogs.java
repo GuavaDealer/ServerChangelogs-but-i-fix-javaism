@@ -12,6 +12,7 @@ import com.codingcat.changelogs.base.util.ResourceUtil;
 import com.codingcat.changelogs.platformapi.ChangelogsPlatform;
 import com.codingcat.changelogs.platformapi.Entrypoint;
 import com.codingcat.changelogs.platformapi.command.ICommandManager;
+import com.codingcat.changelogs.platformapi.event.IEventManager;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import lombok.Getter;
@@ -45,6 +46,7 @@ public final class ServerChangelogs extends Entrypoint {
     private static ComponentLogger logger;
     private TranslationSource translationSource;
     private PluginConfig config;
+    private ChangelogJoinListener joinListener;
     private @Getter ChangelogStorage changelogStorage;
     private @Getter IDialog.Holder dialogHolder;
     private @Getter DialogSessionManager dialogSessionManager;
@@ -89,7 +91,8 @@ public final class ServerChangelogs extends Entrypoint {
         this.dialogHolder.recreate();
         this.dialogSessionManager = new DialogSessionManager(this.dialogHolder, getPlatform().getPlayerManager());
         this.dialogSessionManager.registerEvents();
-        getPlatform().getEventManager().registerMethodDispatcher(new ChangelogJoinListener(this::getChangelogStorage, dialogHolder, dialogSessionManager));
+        this.joinListener = new ChangelogJoinListener(this::getChangelogStorage, dialogHolder, dialogSessionManager, config);
+        this.joinListener.registerEvents(getPlatform().getEventManager());
         this.registerCommands(getPlatform().getCommandManager());
     }
 
@@ -117,12 +120,16 @@ public final class ServerChangelogs extends Entrypoint {
         info("console.startup_storage", text(this.changelogStorage.getDisplayName()));
         this.changelogStorage.init();
         this.dialogHolder.recreate();
+        IEventManager eventManager = getPlatform().getEventManager();
+        this.joinListener.unregisterEvents(eventManager);
+        this.joinListener.registerEvents(eventManager);
     }
 
     @Override
     public void onShutdown() {
         info("console.shutdown");
         if (this.dialogSessionManager != null) this.dialogSessionManager.unregisterEvents();
+        if (this.joinListener != null) this.joinListener.unregisterEvents(getPlatform().getEventManager());
         if (this.changelogStorage != null) this.changelogStorage.shutdown();
     }
 

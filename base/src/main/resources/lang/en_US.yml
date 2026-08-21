@@ -8,6 +8,7 @@ meta.unknown: "<red>Unknown"
 console: # Translations for most messages the plugin will send in the server's console
   startup: "Starting <translate:plugin_name> <gray>v<plugin:version></gray> by <aqua><plugin:authors></aqua>"
   startup_storage: "Initializing <green>\"<arg:0>\"</green> changelog storage..."
+  join.frozen: "Player <aqua><arg:0></aqua> is frozen in configuration while viewing new changelogs"
   reload: "<aqua>Reloading plugin..."
   shutdown: "<red>Shutting down, bye!"
 command: # Translations for the plugin's commands
