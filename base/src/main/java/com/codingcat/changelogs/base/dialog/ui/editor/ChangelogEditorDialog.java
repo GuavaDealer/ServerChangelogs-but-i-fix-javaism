@@ -61,10 +61,10 @@ public class ChangelogEditorDialog implements IDialog {
             payload.setTag("target_line", new NBTInt(idx));
             Component edit = null;
             if (!isEditing) edit = translatableManual(p, prefix + "format", translatable(prefix + "edit"))
-                    .decoration(TextDecoration.BOLD,false)
+                    .decoration(TextDecoration.BOLD, false)
                     .clickEvent(sessionManager.createSessionBasedClickEvent(this, "start_edit_line", payload));
             Component remove = translatableManual(p, prefix + "format", translatable(prefix + "remove"))
-                    .decoration(TextDecoration.BOLD,false)
+                    .decoration(TextDecoration.BOLD, false)
                     .clickEvent(sessionManager.createSessionBasedClickEvent(this, "remove_line", payload));
             Component finalCmp = line.appendSpace();
             if (!isEditing) finalCmp = finalCmp.append(edit).appendSpace();
@@ -145,7 +145,7 @@ public class ChangelogEditorDialog implements IDialog {
                 this.showTo(source, sessionManager, DialogPackets.PacketPhase.PLAY);
             }
             case "commit" -> {
-                if (!permissionCheck("command." + session.getId(), source)) {
+                if (!permissionCheck(session.getPermission(), source, useFallbackPermissions)) {
                     sessionManager.endSession(source);
                     DialogPackets.showSimpleNotice(source, TITLE_KEY.apply(session), "dialog.editor.error.no_permission");
                     return;
@@ -171,7 +171,7 @@ public class ChangelogEditorDialog implements IDialog {
         DialogPackets.showSimpleNotice(source, TITLE_KEY.apply(session), "dialog.editor.error." + errorPart, sessionManager.createSessionBasedAction(this, "retry", false), DialogPackets.PacketPhase.PLAY);
     }
 
-    private boolean permissionCheck(@NotNull String permission, @NotNull IPlayer source) {
+    public static boolean permissionCheck(@NotNull String permission, @NotNull IPlayer source, boolean useFallbackPermissions) {
         return useFallbackPermissions ? source.isNativeAdmin().toBooleanOrElse(false) : source.hasPermission(ServerChangelogs.NAMESPACE + "." + permission);
     }
 }

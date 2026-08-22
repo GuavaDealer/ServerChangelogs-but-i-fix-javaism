@@ -30,6 +30,8 @@ public abstract class EditorSession {
 
     public abstract @NotNull String getId();
 
+    public abstract @NotNull String getPermission();
+
     public @NotNull @Unmodifiable List<Component> deserializeLines() {
         return getRawLines().stream()
                 .map(MiniMessage.miniMessage()::deserialize)
@@ -65,6 +67,11 @@ public abstract class EditorSession {
         public @NotNull String getId() {
             return "create";
         }
+
+        @Override
+        public @NotNull String getPermission() {
+            return "command.create";
+        }
     }
 
     @Getter
@@ -98,6 +105,11 @@ public abstract class EditorSession {
         @Override
         public @NotNull String getId() {
             return "edit";
+        }
+
+        @Override
+        public @NotNull String getPermission() {
+            return "manage";
         }
     }
 
