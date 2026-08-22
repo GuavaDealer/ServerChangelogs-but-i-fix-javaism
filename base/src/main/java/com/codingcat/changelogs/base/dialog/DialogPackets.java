@@ -1,10 +1,7 @@
 package com.codingcat.changelogs.base.dialog;
 
 import com.codingcat.changelogs.platformapi.player.IPlayer;
-import com.github.retrooper.packetevents.protocol.dialog.CommonDialogData;
-import com.github.retrooper.packetevents.protocol.dialog.Dialog;
-import com.github.retrooper.packetevents.protocol.dialog.DialogAction;
-import com.github.retrooper.packetevents.protocol.dialog.NoticeDialog;
+import com.github.retrooper.packetevents.protocol.dialog.*;
 import com.github.retrooper.packetevents.protocol.dialog.action.Action;
 import com.github.retrooper.packetevents.protocol.dialog.body.DialogBody;
 import com.github.retrooper.packetevents.protocol.dialog.body.PlainMessage;
@@ -40,15 +37,26 @@ public final class DialogPackets {
         showSimpleNotice(player, titleTranslation, bodyTranslation, null, PacketPhase.PLAY);
     }
 
+    public static void showSimpleConfirm(@NotNull IPlayer player, @NotNull String titleTranslation, @NotNull String bodyTranslation, @NotNull Action confirm, boolean confirmDanger, @NotNull Action cancel, @NotNull PacketPhase packetPhase) {
+        CommonDialogData common = createSimpleDialog(player, titleTranslation, bodyTranslation, false, !confirmDanger);
+        ActionButton confirmButton = new ActionButton(new CommonButtonData(translatableManual(player, "dialog.popup.confirm" + (confirmDanger ? "_danger" : "")), null, 60), confirm);
+        ActionButton cancelButton = new ActionButton(new CommonButtonData(translatableManual(player, "dialog.popup.cancel"), null, 60), cancel);
+        showDialog(player, new ConfirmationDialog(common, confirmButton, cancelButton), packetPhase);
+    }
+
     public static void showSimpleNotice(@NotNull IPlayer player, @NotNull String titleTranslation, @NotNull String bodyTranslation, @Nullable Action action, @NotNull PacketPhase packetPhase) {
-        DialogBody body = new PlainMessageDialogBody(new PlainMessage(translatableManual(player, bodyTranslation), 400));
-        CommonDialogData common = new CommonDialogData(
-                translatableManual(player, titleTranslation),
-                null, true, false,
-                action != null ? DialogAction.NONE : DialogAction.CLOSE, List.of(body), List.of()
-        );
+        CommonDialogData common = createSimpleDialog(player, titleTranslation, bodyTranslation, action == null, true);
         ActionButton closeButton = new ActionButton(new CommonButtonData(translatableManual(player, "dialog.popup.close"), null, 40), action);
         showDialog(player, new NoticeDialog(common, closeButton), packetPhase);
+    }
+
+    private static @NotNull CommonDialogData createSimpleDialog(@NotNull IPlayer player, @NotNull String titleTranslation, @NotNull String bodyTranslation, boolean closeAfter, boolean canEscape) {
+        DialogBody body = new PlainMessageDialogBody(new PlainMessage(translatableManual(player, bodyTranslation), 400));
+        return new CommonDialogData(
+                translatableManual(player, titleTranslation),
+                null, canEscape, false,
+                closeAfter ? DialogAction.CLOSE : DialogAction.NONE, List.of(body), List.of()
+        );
     }
 
     public static void clearDialog(@NotNull IPlayer player, @NotNull PacketPhase packetPhase) {
@@ -111,7 +119,7 @@ public final class DialogPackets {
 
         @Override
         public @NotNull PermissionChecker asPermissionChecker() {
-            throw EXCEPTION;
+            return PermissionChecker.always(TriState.NOT_SET);
         }
 
         @Override

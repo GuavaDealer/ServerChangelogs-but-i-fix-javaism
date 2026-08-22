@@ -29,11 +29,15 @@ icon: # General icon definitions, this can be used to change icons everywhere wh
   changelog: "<sprite:gui:icon/news>"
   letter: "<sprite:gui:icon/draft_report>"
   attention: "<sprite:gui:icon/unseen_notification>"
+  warning: "<sprite:gui:dialog/warning_button>"
   search: "<sprite:gui:icon/search>"
   speech_bubble: "<sprite:gui:toast/social_interactions>"
 dialog: # Translations for the plugin's dialog UIs
   error: "<red>An unexpected error occurred while trying to process a dialog action:"
   popup:
+    confirm: "<translate:icon.confirm> <green><b>Confirm"
+    confirm_danger: "<translate:icon.warning> <red><b>Confirm"
+    cancel: "<translate:icon.deny> <dark_red><b>Cancel"
     close: "<translate:icon.confirm> <green>Ok"
   editor: # The UI used to publish and edit changelogs
     create: # Translations specific to the creation mode of the editor
