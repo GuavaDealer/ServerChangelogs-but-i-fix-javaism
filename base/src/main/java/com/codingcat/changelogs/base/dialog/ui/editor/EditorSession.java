@@ -25,12 +25,15 @@ public abstract class EditorSession {
     private int editingLineIndex = -1;
     private @NotNull String currentLine = "";
     private @NotNull String author = "";
+    private boolean showRestoredMessage = false;
 
     abstract void commit(@NotNull ChangelogStorage storage) throws CommitException;
 
     public abstract @NotNull String getId();
 
     public abstract @NotNull String getPermission();
+
+    public abstract boolean canBeSaved();
 
     public @NotNull @Unmodifiable List<Component> deserializeLines() {
         return getRawLines().stream()
@@ -72,6 +75,11 @@ public abstract class EditorSession {
         public @NotNull String getPermission() {
             return "command.create";
         }
+
+        @Override
+        public boolean canBeSaved() {
+            return !getRawLines().isEmpty() || !getAuthor().isBlank();
+        }
     }
 
     @Getter
@@ -110,6 +118,11 @@ public abstract class EditorSession {
         @Override
         public @NotNull String getPermission() {
             return "manage";
+        }
+
+        @Override
+        public boolean canBeSaved() {
+            return false;
         }
     }
 

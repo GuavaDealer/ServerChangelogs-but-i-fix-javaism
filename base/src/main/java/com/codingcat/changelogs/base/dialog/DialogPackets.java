@@ -1,5 +1,6 @@
 package com.codingcat.changelogs.base.dialog;
 
+import com.codingcat.changelogs.base.dialog.ui.ChangelogDialog;
 import com.codingcat.changelogs.platformapi.player.IPlayer;
 import com.github.retrooper.packetevents.protocol.dialog.*;
 import com.github.retrooper.packetevents.protocol.dialog.action.Action;
@@ -50,8 +51,8 @@ public final class DialogPackets {
         showDialog(player, new NoticeDialog(common, closeButton), packetPhase);
     }
 
-    private static @NotNull CommonDialogData createSimpleDialog(@NotNull IPlayer player, @NotNull String titleTranslation, @NotNull String bodyTranslation, boolean closeAfter, boolean canEscape) {
-        DialogBody body = new PlainMessageDialogBody(new PlainMessage(translatableManual(player, bodyTranslation), 400));
+    public static @NotNull CommonDialogData createSimpleDialog(@NotNull IPlayer player, @NotNull String titleTranslation, @NotNull String bodyTranslation, boolean closeAfter, boolean canEscape) {
+        DialogBody body = new PlainMessageDialogBody(new PlainMessage(translatableManual(player, bodyTranslation), ChangelogDialog.LINE_WIDTH));
         return new CommonDialogData(
                 translatableManual(player, titleTranslation),
                 null, canEscape, false,

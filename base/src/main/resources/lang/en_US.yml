@@ -32,6 +32,8 @@ icon: # General icon definitions, this can be used to change icons everywhere wh
   warning: "<sprite:gui:dialog/warning_button>"
   search: "<sprite:gui:icon/search>"
   speech_bubble: "<sprite:gui:toast/social_interactions>"
+  info: "<sprite:gui:icon/info>"
+  back: "<sprite:gui:widget/page_backward>"
 dialog: # Translations for the plugin's dialog UIs
   error: "<red>An unexpected error occurred while trying to process a dialog action:"
   popup:
@@ -55,17 +57,29 @@ dialog: # Translations for the plugin's dialog UIs
       Dashes <gray>(<b>-</b>)</gray> are added automatically. Use <red>one line</red> to describe an <red>individual</red> change.
       You can see a <green>preview</green> of your new changelog below here:
     empty_preview: "<translate:icon.search> <u><gray>Add a line using the text field below to see a preview."
+    restored_session: "<translate:icon.info> <green>This session was restored from the last time you were using the editor."
     input:
       contents: "Line Content"
       author: "Author <gray>(optional)</gray>"
     button:
       add_line: "<translate:icon.speech_bubble> <green><b>Add Line"
       edit_line: "<translate:icon.confirm> <light_purple><b>Edit Line"
-      cancel: "<translate:icon.deny> <red><b>Cancel"
+      close: "<translate:icon.deny> <red><b>Close"
     line_action:
       format: "<dark_gray>[<arg:0>]"
       edit: "<light_purple><hover:show_text:'<light_purple>✎ Edit line'>✎"
       remove: "<red><hover:show_text:'<red>❌ Remove line'>❌"
+    confirm_close:
+      button:
+        save_session: "<translate:icon.letter> <green><b>Save and Close"
+        discard_session: "<translate:icon.warning> <red><b>Discard and Close"
+        cancel: "<translate:icon.back> <gold><b>Keep Editing"
+      content: |-
+        Are you sure that you want to <red>discard</red> all of your changes?
+        
+        You have the option to <green>save your work</green> until the <aqua>next time</aqua> you open the editor.
+        If you do not want to <green>save the session</green> and <yellow>start over</yellow> next time, you can <red>discard</red> it.
+        You also have the option to <gold>go back</gold> to editing your current changelog.
     error:
       create:
         internal_error: "<translate:icon.deny> <red>An internal error occurred while trying to publish your dialog.\n\nMore details have been logged to the server's console."

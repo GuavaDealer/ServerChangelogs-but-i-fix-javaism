@@ -11,6 +11,7 @@ import com.github.retrooper.packetevents.protocol.dialog.CommonDialogData;
 import com.github.retrooper.packetevents.protocol.dialog.Dialog;
 import com.github.retrooper.packetevents.protocol.dialog.DialogAction;
 import com.github.retrooper.packetevents.protocol.dialog.MultiActionDialog;
+import com.github.retrooper.packetevents.protocol.dialog.action.Action;
 import com.github.retrooper.packetevents.protocol.dialog.body.DialogBody;
 import com.github.retrooper.packetevents.protocol.dialog.body.ItemDialogBody;
 import com.github.retrooper.packetevents.protocol.dialog.body.PlainMessage;
@@ -21,6 +22,7 @@ import com.github.retrooper.packetevents.protocol.dialog.input.Input;
 import com.github.retrooper.packetevents.protocol.dialog.input.TextInputControl;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
+import com.github.retrooper.packetevents.protocol.nbt.NBTByte;
 import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
 import com.github.retrooper.packetevents.protocol.nbt.NBTInt;
 import lombok.Getter;
@@ -32,6 +34,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -43,13 +48,18 @@ import static net.kyori.adventure.text.Component.text;
 @RequiredArgsConstructor
 public class ChangelogEditorDialog implements IDialog {
     private static final @NotNull Function<EditorSession, String> TITLE_KEY = s -> "dialog.editor." + s.getId() + ".title";
+    private final @NotNull Map<UUID, EditorSession> savedSessions = new ConcurrentHashMap<>();
     private final @Getter String id = "changelog_editor";
     private final @NotNull ChangelogStorage storage;
     private final boolean useFallbackPermissions;
 
     @Override
     public @NotNull Dialog build(@NotNull IPlayer p, @NotNull DialogSessionManager sessionManager) {
-        sessionManager.startSessionIfNoneActive(this, p, () -> new EditorSession.Create(storage.nextUID()));
+        sessionManager.startSessionIfNoneActive(this, p, () -> {
+            EditorSession session = this.savedSessions.remove(p.getUniqueId());
+            if (session == null || !session.canBeSaved()) session = new EditorSession.Create(storage.nextUID());
+            return session;
+        });
         EditorSession session = sessionManager.getSessionData(p, EditorSession.class);
         String sessionTranslation = "dialog.editor." + session.getId();
         List<Component> previewLines = session.deserializeLines();
@@ -77,6 +87,10 @@ public class ChangelogEditorDialog implements IDialog {
                 new PlainMessageDialogBody(new PlainMessage(translatableManual(p, "dialog.editor.hint"), ChangelogDialog.LINE_WIDTH)),
                 new PlainMessageDialogBody(new PlainMessage(!previewLines.isEmpty() ? createLinesComponent(p, lineMapper, previewLines) : translatableManual(p, "dialog.editor.empty_preview"), ChangelogDialog.LINE_WIDTH))
         );
+        if (session.isShowRestoredMessage()) {
+            body = new ArrayList<>(body);
+            body.add(1, new PlainMessageDialogBody(new PlainMessage(translatableManual(p, "dialog.editor.restored_session"), 400)));
+        }
         List<Input> inputs = List.of(
                 new Input("line", new TextInputControl(350, translatableManual(p, "dialog.editor.input.contents"),
                         true, session.getCurrentLine(), 5000, null)),
@@ -84,20 +98,41 @@ public class ChangelogEditorDialog implements IDialog {
         );
         CommonDialogData common = new CommonDialogData(
                 translatableManual(p, TITLE_KEY.apply(session)),
-                null, false, false,
+                null, true, false,
                 DialogAction.NONE, body, inputs
         );
         List<ActionButton> buttons = new ArrayList<>();
         buttons.add(new ActionButton(new CommonButtonData(translatableManual(p, sessionTranslation + ".commit_button"), null, 160), sessionManager.createSessionBasedAction(this, "commit", true)));
         String lineAction = session.getEditingLineIndex() != -1 ? "edit_line" : "add_line";
         buttons.add(new ActionButton(new CommonButtonData(translatableManual(p, "dialog.editor.button." + lineAction), null, 100), sessionManager.createSessionBasedAction(this, lineAction, true)));
-        ActionButton cancelBtn = new ActionButton(new CommonButtonData(translatableManual(p, "dialog.editor.button.cancel"), null, 100), sessionManager.createSessionBasedAction(this, "close", false));
-        return new MultiActionDialog(common, buttons, cancelBtn, 3);
+        ActionButton closeBtn = new ActionButton(new CommonButtonData(translatableManual(p, "dialog.editor.button.close"), null, 100), sessionManager.createSessionBasedAction(this, "try_close", true));
+        return new MultiActionDialog(common, buttons, closeBtn, 3);
+    }
+
+    private @NotNull Dialog buildConfirmCloseDialog(@NotNull IPlayer p, @NotNull DialogSessionManager sessionManager) {
+        EditorSession session = sessionManager.getSessionData(p, EditorSession.class);
+        String prefix = "dialog.editor.confirm_close.";
+        CommonDialogData common = DialogPackets.createSimpleDialog(p, TITLE_KEY.apply(session), prefix + "content", false, false);
+        Function<Boolean, Action> closeActionFunc = save -> {
+            NBTCompound payload = new NBTCompound();
+            payload.setTag("save_session", new NBTByte(save));
+            return sessionManager.createSessionBasedAction(this, "close", payload, false);
+        };
+        ActionButton saveSession = new ActionButton(new CommonButtonData(translatableManual(p, prefix + "button.save_session"), null, 140), closeActionFunc.apply(true));
+        ActionButton discardSession = new ActionButton(new CommonButtonData(translatableManual(p, prefix + "button.discard_session"), null, 140), closeActionFunc.apply(false));
+        ActionButton cancel = new ActionButton(new CommonButtonData(translatableManual(p, prefix + "button.cancel"), null, 100), sessionManager.createSessionBasedAction(this, "reopen", false));
+        return new MultiActionDialog(common, List.of(saveSession, discardSession, cancel), null, 3);
+    }
+
+    private void actuallyClose(@NotNull IPlayer source, @NotNull DialogSessionManager sessionManager) {
+        sessionManager.endSession(source);
+        DialogPackets.clearDialog(source, DialogPackets.PacketPhase.PLAY);
     }
 
     @Override
     public void onActionTriggered(@NotNull String action, @Nullable NBTCompound data, @NotNull IPlayer source, @NotNull DialogSessionManager sessionManager) {
         EditorSession session = sessionManager.getSessionData(source, EditorSession.class);
+        session.setShowRestoredMessage(false);
         if (data != null && data.contains("line")) {
             String rawLine = data.getStringTagValueOrThrow("line");
             String rawAuthor = data.getStringTagValueOrThrow("author");
@@ -105,11 +140,24 @@ public class ChangelogEditorDialog implements IDialog {
             session.setAuthor(rawAuthor);
         }
         switch (action) {
-            case "close" -> {
-                sessionManager.endSession(source);
-                DialogPackets.clearDialog(source, DialogPackets.PacketPhase.PLAY);
+            case "try_close" -> {
+                if (session.canBeSaved()) {
+                    Dialog dialog = this.buildConfirmCloseDialog(source, sessionManager);
+                    DialogPackets.showDialog(source, dialog, DialogPackets.PacketPhase.PLAY);
+                    return;
+                }
+                this.actuallyClose(source, sessionManager);
             }
-            case "retry" -> this.showTo(source, sessionManager, DialogPackets.PacketPhase.PLAY);
+            case "close" -> {
+                if (data == null) return;
+                boolean saveSession = data.getBooleanOrThrow("save_session");
+                if (saveSession) {
+                    session.setShowRestoredMessage(true);
+                    this.savedSessions.put(source.getUniqueId(), session);
+                }
+                this.actuallyClose(source, sessionManager);
+            }
+            case "reopen" -> this.showTo(source, sessionManager, DialogPackets.PacketPhase.PLAY);
             case "add_line", "edit_line" -> {
                 if (action.equals("edit_line") && (session.getEditingLineIndex() == -1)) return;
                 boolean removed = false;
@@ -168,7 +216,7 @@ public class ChangelogEditorDialog implements IDialog {
     }
 
     private void showRetry(@NotNull IPlayer source, @NotNull String errorPart, @NotNull EditorSession session, @NotNull DialogSessionManager sessionManager) {
-        DialogPackets.showSimpleNotice(source, TITLE_KEY.apply(session), "dialog.editor.error." + errorPart, sessionManager.createSessionBasedAction(this, "retry", false), DialogPackets.PacketPhase.PLAY);
+        DialogPackets.showSimpleNotice(source, TITLE_KEY.apply(session), "dialog.editor.error." + errorPart, sessionManager.createSessionBasedAction(this, "reopen", false), DialogPackets.PacketPhase.PLAY);
     }
 
     public static boolean permissionCheck(@NotNull String permission, @NotNull IPlayer source, boolean useFallbackPermissions) {
