@@ -109,8 +109,9 @@ public final class ServerChangelogs extends Entrypoint {
             commandManager.register(DialogSubCommands.buildDedicatedChangelogCommand(this));
     }
 
-    public void reload() throws IOException, YAMLException {
+    public void reload(boolean force) throws IOException, YAMLException, IDialog.DestroyRejectedException {
         info("console.reload");
+        if (!force) this.dialogHolder.ensureCanReload();
         this.translationSource.reload();
         this.config.reload();
         String err = this.config.validate();

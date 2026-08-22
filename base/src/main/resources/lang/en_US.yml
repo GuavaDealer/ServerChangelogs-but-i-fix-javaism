@@ -23,6 +23,8 @@ command: # Translations for the plugin's commands
       io: "<prefix><red>An unexpected I/O error occurred while trying to reload, check the console for more details!"
       details: "<red>Details for unexpected reload error:"
       invalid: "<prefix><red>Invalid configuration: <yellow><arg:0>"
+      dialog_reject:
+        saved_sessions: "<prefix><yellow>There are some saved editor <aqua>draft sessions</aqua> left. Note that reloading will <red>delete</red> those drafts! To reload the plugin anyways, <click:suggest_command:'/changelogs reload --force'><red><u>click here</u></red></click>."
 icon: # General icon definitions, this can be used to change icons everywhere while only changing a single value
   confirm: "<sprite:gui:icon/checkmark>" # All icons are textures from the vanilla resource pack (gui atlas)
   deny: "<sprite:gui:spectator/close>"

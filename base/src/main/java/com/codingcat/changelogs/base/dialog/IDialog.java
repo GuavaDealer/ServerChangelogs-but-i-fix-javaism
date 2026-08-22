@@ -6,6 +6,7 @@ import com.codingcat.changelogs.base.dialog.ui.editor.ChangelogEditorDialog;
 import com.codingcat.changelogs.platformapi.player.IPlayer;
 import com.github.retrooper.packetevents.protocol.dialog.Dialog;
 import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,6 +28,9 @@ public interface IDialog {
     }
 
     void onActionTriggered(@NotNull String action, @Nullable NBTCompound data, @NotNull IPlayer source, @NotNull DialogSessionManager sessionManager);
+
+    default void attemptDestroy() throws DestroyRejectedException {
+    }
 
     @NotNull String getId();
 
@@ -51,6 +55,10 @@ public interface IDialog {
             ));
         }
 
+        public void ensureCanReload() throws DestroyRejectedException {
+            for (IDialog dialog : this.dialogMap.values()) dialog.attemptDestroy();
+        }
+
         public @NotNull IDialog getFromId(@NotNull String id) throws NullPointerException {
             return Objects.requireNonNull(this.dialogMap.get(id), "No dialog found matching ID \"" + id + "\"");
         }
@@ -61,5 +69,11 @@ public interface IDialog {
                     .findAny().map(cls::cast)
                     .orElseThrow(() -> new IllegalArgumentException("No matching dialog found"));
         }
+    }
+
+    @Getter
+    @RequiredArgsConstructor
+    class DestroyRejectedException extends Exception {
+        private final @NotNull String key;
     }
 }

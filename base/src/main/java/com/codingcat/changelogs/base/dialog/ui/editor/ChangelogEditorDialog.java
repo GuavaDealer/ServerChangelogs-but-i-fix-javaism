@@ -215,6 +215,11 @@ public class ChangelogEditorDialog implements IDialog {
         }
     }
 
+    @Override
+    public void attemptDestroy() throws DestroyRejectedException {
+        if (!this.savedSessions.isEmpty()) throw new DestroyRejectedException("saved_sessions");
+    }
+
     private void showRetry(@NotNull IPlayer source, @NotNull String errorPart, @NotNull EditorSession session, @NotNull DialogSessionManager sessionManager) {
         DialogPackets.showSimpleNotice(source, TITLE_KEY.apply(session), "dialog.editor.error." + errorPart, sessionManager.createSessionBasedAction(this, "reopen", false), DialogPackets.PacketPhase.PLAY);
     }
