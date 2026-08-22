@@ -22,6 +22,7 @@ paperPluginYaml {
     name = rootProject.name
     main = "${group}.changelogs.paper.PaperChangelogsPlatform"
     apiVersion = project.property("minecraft_version_compat").toString()
+    foliaSupported = true
 
     authors.addAll("codingcat2468")
     dependencies.server.create("packetevents")
