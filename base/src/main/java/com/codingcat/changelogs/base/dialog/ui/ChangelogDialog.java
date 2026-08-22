@@ -53,11 +53,9 @@ public class ChangelogDialog implements IDialog {
     public @NotNull Dialog build(@NotNull IPlayer p, @NotNull DialogSessionManager sessionManager) {
         boolean canManage = this.canManage(p, sessionManager);
         if (canManage) sessionManager.startSessionIfNoneActive(this, p, Object::new);
-        Component authorNull = translatableManual(p, "dialog.changelog.unspecified_author");
         List<DialogBody> body = this.storage.listEntries()
                 .reversed().stream()
-                .map(e -> translatableManual(p, "dialog.changelog.entry" + (!e.hasRead(p) ? "_unread" : ""),
-                        text(dateFormatter.format(e.recordedAt())), createLinesComponent(p, null, e.lines()), Objects.requireNonNullElse(e.author(), authorNull)))
+                .map(e -> formatEntry(e, p, sessionManager, canManage))
                 .map(c -> (DialogBody) new PlainMessageDialogBody(new PlainMessage(c, LINE_WIDTH)))
                 .toList();
         if (body.isEmpty())
@@ -77,6 +75,25 @@ public class ChangelogDialog implements IDialog {
                 null, 60
         ), sessionManager.createStaticAction(this, "confirm_read"));
         return new NoticeDialog(common, button);
+    }
+
+    private @NotNull Component formatEntry(@NotNull ChangelogEntry entry, @NotNull IPlayer player, @NotNull DialogSessionManager sessionManager, boolean canManage) {
+        Component linesComponent = createLinesComponent(player, null, entry.lines());
+        Component entryComponent = translatableManual(player, "dialog.changelog.entry" + (!entry.hasRead(player) ? "_unread" : ""),
+                text(dateFormatter.format(entry.recordedAt())), linesComponent,
+                Objects.requireNonNullElseGet(entry.author(), () -> translatableManual(player, "dialog.changelog.unspecified_author"))
+        );
+        if (canManage) {
+            String prefix = "dialog.changelog.manage.changelog_action.";
+            NBTCompound payload = new NBTCompound();
+            payload.setTag("uid", new NBTInt(entry.uid()));
+            Component edit = translatableManual(player, prefix + "format", translatable(prefix + "edit"))
+                    .clickEvent(sessionManager.createSessionBasedClickEvent(this, "start_editing", payload));
+            Component delete = translatableManual(player, prefix + "format", translatable(prefix + "delete"))
+                    .clickEvent(sessionManager.createSessionBasedClickEvent(this, "request_delete", payload));
+            entryComponent = entryComponent.appendSpace().append(edit).appendSpace().append(delete);
+        }
+        return entryComponent;
     }
 
     public static @NotNull Component createLinesComponent(@NotNull IPlayer player, @Nullable BiFunction<Component, Integer, Component> mapper, @NotNull List<Component> lines) {

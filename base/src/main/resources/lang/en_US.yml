@@ -105,8 +105,13 @@ dialog: # Translations for the plugin's dialog UIs
       close: "<translate:icon.confirm> <green>Exit"
     read: "<prefix><translate:icon.confirm> <green>Marked <yellow><arg:0></yellow> entries as read!"
     manage:
+      changelog_action:
+        format: "<dark_gray>[<arg:0>]"
+        edit: "<aqua><hover:show_text:'<aqua>✎ Edit changelog'>✎"
+        delete: "<red><hover:show_text:'<red>❌ Delete changelog'>❌"
       confirm_delete:
         title: "<translate:icon.warning> <red><b>Confirm Deletion"
         content: |-
-          Are you sure that you want to <b><red>delete</b></red> the selected changelog?
-          Please note that this action <b><red>CANNOT BE UNDONE</b></red>!
+          Are you sure that you want to <b><red>delete</red></b> the <aqua>selected changelog</aqua>?
+          
+          Please note that this action <b><red>CANNOT BE UNDONE</red></b>!

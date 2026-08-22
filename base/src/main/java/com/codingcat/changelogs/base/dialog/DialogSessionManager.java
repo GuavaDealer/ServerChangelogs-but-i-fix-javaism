@@ -69,7 +69,7 @@ public class DialogSessionManager implements PacketListener {
         } catch (NbtCodecException _) {
             // Ignore invalid or unexpected NBT payloads like malicious packets sent by a modified client
         } catch (Exception e) {
-            throw new RuntimeException("Failed to run dialog action handler for \"" + dialogId + "\"", e);
+            throw new RuntimeException("Failed to run dialog action handler for \"" + dialogId + "\", action \"" + actionId + "\"", e);
         }
     }
 
