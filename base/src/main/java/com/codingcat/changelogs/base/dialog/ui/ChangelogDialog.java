@@ -111,52 +111,56 @@ public class ChangelogDialog implements IDialog {
 
     @Override
     public void onActionTriggered(@NotNull String action, @Nullable NBTCompound data, @NotNull IPlayer source, @NotNull DialogSessionManager sessionManager) {
-        boolean canManage = this.canManage(source, sessionManager);
-        switch (action) {
-            case "confirm_read" -> {
-                List<Integer> uids = this.storage.listEntries()
-                        .stream()
-                        .filter(e -> !e.hasRead(source))
-                        .map(ChangelogEntry::uid)
-                        .toList();
-                uids.forEach(uid -> storage.markAsRead(uid, source.getUniqueId()));
-                if (canManage) {
-                    sessionManager.endSession(source);
-                    DialogPackets.clearDialog(source, DialogPackets.PacketPhase.PLAY);
+        try {
+            boolean canManage = this.canManage(source, sessionManager);
+            switch (action) {
+                case "confirm_read" -> {
+                    List<Integer> uids = this.storage.listEntries()
+                            .stream()
+                            .filter(e -> !e.hasRead(source))
+                            .map(ChangelogEntry::uid)
+                            .toList();
+                    uids.forEach(uid -> storage.markAsRead(uid, source.getUniqueId()));
+                    if (canManage) {
+                        sessionManager.endSession(source);
+                        DialogPackets.clearDialog(source, DialogPackets.PacketPhase.PLAY);
+                    }
+                    if (!uids.isEmpty())
+                        source.asAudience().sendMessage(translatable("dialog.changelog.read", text(uids.size())));
                 }
-                sessionManager.unfreeze(source);
-                if (!uids.isEmpty())
-                    source.asAudience().sendMessage(translatable("dialog.changelog.read", text(uids.size())));
+                case "reopen" -> {
+                    if (canManage) this.showTo(source, sessionManager, DialogPackets.PacketPhase.PLAY);
+                }
+                case "start_editing" -> {
+                    if (data == null || !canManage) return;
+                    int uid = data.getNumberTagValueOrThrow("uid").intValue();
+                    ChangelogEntry entry = this.storage.getByUID(uid);
+                    if (entry == null) return;
+                    sessionManager.endSession(source);
+                    EditorSession.Edit session = new EditorSession.Edit(entry);
+                    this.holder.getFromType(ChangelogEditorDialog.class)
+                            .showTo(source, sessionManager, session, DialogPackets.PacketPhase.PLAY);
+                }
+                case "request_delete" -> {
+                    if (data == null || !canManage) return;
+                    int uid = data.getNumberTagValueOrThrow("uid").intValue();
+                    NBTCompound payload = new NBTCompound();
+                    payload.setTag("uid", new NBTInt(uid));
+                    String prefix = "dialog.changelog.manage.confirm_delete.";
+                    DialogPackets.showSimpleConfirm(source, prefix + "title", prefix + "content",
+                            sessionManager.createSessionBasedAction(this, "confirm_delete", payload, false), true,
+                            sessionManager.createSessionBasedAction(this, "reopen", false), DialogPackets.PacketPhase.PLAY);
+                }
+                case "confirm_delete" -> {
+                    if (data == null || !canManage) return;
+                    int uid = data.getNumberTagValueOrThrow("uid").intValue();
+                    this.storage.removeEntry(uid);
+                    this.showTo(source, sessionManager, DialogPackets.PacketPhase.PLAY);
+                }
             }
-            case "reopen" -> {
-                if (canManage) this.showTo(source, sessionManager, DialogPackets.PacketPhase.PLAY);
-            }
-            case "start_editing" -> {
-                if (data == null || !canManage) return;
-                int uid = data.getNumberTagValueOrThrow("uid").intValue();
-                ChangelogEntry entry = this.storage.getByUID(uid);
-                if (entry == null) return;
-                sessionManager.endSession(source);
-                EditorSession.Edit session = new EditorSession.Edit(entry);
-                this.holder.getFromType(ChangelogEditorDialog.class)
-                        .showTo(source, sessionManager, session, DialogPackets.PacketPhase.PLAY);
-            }
-            case "request_delete" -> {
-                if (data == null || !canManage) return;
-                int uid = data.getNumberTagValueOrThrow("uid").intValue();
-                NBTCompound payload = new NBTCompound();
-                payload.setTag("uid", new NBTInt(uid));
-                String prefix = "dialog.changelog.manage.confirm_delete.";
-                DialogPackets.showSimpleConfirm(source, prefix + "title", prefix + "content",
-                        sessionManager.createSessionBasedAction(this, "confirm_delete", payload, false), true,
-                        sessionManager.createSessionBasedAction(this, "reopen", false), DialogPackets.PacketPhase.PLAY);
-            }
-            case "confirm_delete" -> {
-                if (data == null || !canManage) return;
-                int uid = data.getNumberTagValueOrThrow("uid").intValue();
-                this.storage.removeEntry(uid);
-                this.showTo(source, sessionManager, DialogPackets.PacketPhase.PLAY);
-            }
+        } finally {
+            // Ensure the player is able to continue gameplay even if any exceptions occur
+            if (action.equals("confirm_read")) sessionManager.unfreeze(source);
         }
     }
 
