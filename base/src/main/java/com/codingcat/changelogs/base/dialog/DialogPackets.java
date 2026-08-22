@@ -38,10 +38,10 @@ public final class DialogPackets {
     }
 
     public static void showSimpleConfirm(@NotNull IPlayer player, @NotNull String titleTranslation, @NotNull String bodyTranslation, @NotNull Action confirm, boolean confirmDanger, @NotNull Action cancel, @NotNull PacketPhase packetPhase) {
-        CommonDialogData common = createSimpleDialog(player, titleTranslation, bodyTranslation, false, !confirmDanger);
-        ActionButton confirmButton = new ActionButton(new CommonButtonData(translatableManual(player, "dialog.popup.confirm" + (confirmDanger ? "_danger" : "")), null, 60), confirm);
-        ActionButton cancelButton = new ActionButton(new CommonButtonData(translatableManual(player, "dialog.popup.cancel"), null, 60), cancel);
-        showDialog(player, new ConfirmationDialog(common, confirmButton, cancelButton), packetPhase);
+        CommonDialogData common = createSimpleDialog(player, titleTranslation, bodyTranslation, false, false);
+        ActionButton confirmButton = new ActionButton(new CommonButtonData(translatableManual(player, "dialog.popup.confirm" + (confirmDanger ? "_danger" : "")), null, 100), confirm);
+        ActionButton cancelButton = new ActionButton(new CommonButtonData(translatableManual(player, "dialog.popup.cancel"), null, 100), cancel);
+        showDialog(player, new MultiActionDialog(common, List.of(confirmButton, cancelButton), null, 2), packetPhase);
     }
 
     public static void showSimpleNotice(@NotNull IPlayer player, @NotNull String titleTranslation, @NotNull String bodyTranslation, @Nullable Action action, @NotNull PacketPhase packetPhase) {
@@ -99,7 +99,7 @@ public final class DialogPackets {
 
         @Override
         public @NotNull TriState isNativeAdmin() {
-            throw EXCEPTION;
+            return TriState.NOT_SET;
         }
 
         @Override
