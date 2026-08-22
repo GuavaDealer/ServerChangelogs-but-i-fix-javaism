@@ -2,8 +2,11 @@ package com.codingcat.changelogs.base.dialog.ui;
 
 import com.codingcat.changelogs.base.data.ChangelogEntry;
 import com.codingcat.changelogs.base.data.ChangelogStorage;
+import com.codingcat.changelogs.base.dialog.DialogPackets;
 import com.codingcat.changelogs.base.dialog.DialogSessionManager;
 import com.codingcat.changelogs.base.dialog.IDialog;
+import com.codingcat.changelogs.base.dialog.ui.editor.ChangelogEditorDialog;
+import com.codingcat.changelogs.base.dialog.ui.editor.EditorSession;
 import com.codingcat.changelogs.platformapi.player.IPlayer;
 import com.github.retrooper.packetevents.protocol.dialog.CommonDialogData;
 import com.github.retrooper.packetevents.protocol.dialog.Dialog;
@@ -17,6 +20,7 @@ import com.github.retrooper.packetevents.protocol.dialog.button.ActionButton;
 import com.github.retrooper.packetevents.protocol.dialog.button.CommonButtonData;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
+import com.github.retrooper.packetevents.protocol.nbt.NBTInt;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
@@ -29,6 +33,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.BiFunction;
 
+import static com.codingcat.changelogs.base.dialog.ui.editor.ChangelogEditorDialog.permissionCheck;
 import static com.codingcat.changelogs.base.lang.TranslationSource.translatable;
 import static com.codingcat.changelogs.base.lang.TranslationSource.translatableManual;
 import static net.kyori.adventure.text.Component.text;
@@ -38,12 +43,16 @@ public class ChangelogDialog implements IDialog {
     public static final int LINE_WIDTH = 440;
     private final @Getter String id = "changelog_view";
     private final @NotNull ChangelogStorage storage;
+    private final @NotNull IDialog.Holder holder;
     private final @NotNull DateTimeFormatter dateFormatter;
     private final boolean addHeader;
     private final @Nullable ItemStack headerItem;
+    private final boolean useFallbackPermissions;
 
     @Override
     public @NotNull Dialog build(@NotNull IPlayer p, @NotNull DialogSessionManager sessionManager) {
+        boolean canManage = this.canManage(p, sessionManager);
+        if (canManage) sessionManager.startSessionIfNoneActive(this, p, Object::new);
         Component authorNull = translatableManual(p, "dialog.changelog.unspecified_author");
         List<DialogBody> body = this.storage.listEntries()
                 .reversed().stream()
@@ -61,7 +70,7 @@ public class ChangelogDialog implements IDialog {
         CommonDialogData common = new CommonDialogData(
                 translatableManual(p, "dialog.changelog.title"),
                 null, true, false,
-                DialogAction.CLOSE, body, List.of()
+                canManage ? DialogAction.NONE : DialogAction.CLOSE, body, List.of()
         );
         ActionButton button = new ActionButton(new CommonButtonData(
                 translatableManual(p, "dialog.changelog.button.close"),
@@ -85,14 +94,56 @@ public class ChangelogDialog implements IDialog {
 
     @Override
     public void onActionTriggered(@NotNull String action, @Nullable NBTCompound data, @NotNull IPlayer source, @NotNull DialogSessionManager sessionManager) {
-        if (!action.equals("confirm_read")) return;
-        List<Integer> uids = this.storage.listEntries()
-                .stream()
-                .filter(e -> !e.hasRead(source))
-                .map(ChangelogEntry::uid)
-                .toList();
-        uids.forEach(uid -> storage.markAsRead(uid, source.getUniqueId()));
-        sessionManager.unfreeze(source);
-        if (!uids.isEmpty()) source.asAudience().sendMessage(translatable("dialog.changelog.read", text(uids.size())));
+        boolean canManage = this.canManage(source, sessionManager);
+        switch (action) {
+            case "confirm_read" -> {
+                List<Integer> uids = this.storage.listEntries()
+                        .stream()
+                        .filter(e -> !e.hasRead(source))
+                        .map(ChangelogEntry::uid)
+                        .toList();
+                uids.forEach(uid -> storage.markAsRead(uid, source.getUniqueId()));
+                if (canManage) {
+                    sessionManager.endSession(source);
+                    DialogPackets.clearDialog(source, DialogPackets.PacketPhase.PLAY);
+                }
+                sessionManager.unfreeze(source);
+                if (!uids.isEmpty())
+                    source.asAudience().sendMessage(translatable("dialog.changelog.read", text(uids.size())));
+            }
+            case "reopen" -> {
+                if (canManage) this.showTo(source, sessionManager, DialogPackets.PacketPhase.PLAY);
+            }
+            case "start_editing" -> {
+                if (data == null || !canManage) return;
+                int uid = data.getNumberTagValueOrThrow("uid").intValue();
+                ChangelogEntry entry = this.storage.getByUID(uid);
+                if (entry == null) return;
+                sessionManager.endSession(source);
+                EditorSession.Edit session = new EditorSession.Edit(entry);
+                this.holder.getFromType(ChangelogEditorDialog.class)
+                        .showTo(source, sessionManager, session, DialogPackets.PacketPhase.PLAY);
+            }
+            case "request_delete" -> {
+                if (data == null || !canManage) return;
+                int uid = data.getNumberTagValueOrThrow("uid").intValue();
+                NBTCompound payload = new NBTCompound();
+                payload.setTag("uid", new NBTInt(uid));
+                String prefix = "dialog.changelog.manage.confirm_delete.";
+                DialogPackets.showSimpleConfirm(source, prefix + "title", prefix + "content",
+                        sessionManager.createSessionBasedAction(this, "confirm_delete", payload, false), true,
+                        sessionManager.createSessionBasedAction(this, "reopen", false), DialogPackets.PacketPhase.PLAY);
+            }
+            case "confirm_delete" -> {
+                if (data == null || !canManage) return;
+                int uid = data.getNumberTagValueOrThrow("uid").intValue();
+                this.storage.removeEntry(uid);
+                this.showTo(source, sessionManager, DialogPackets.PacketPhase.PLAY);
+            }
+        }
+    }
+
+    private boolean canManage(@NotNull IPlayer player, @NotNull DialogSessionManager sessionManager) {
+        return permissionCheck("manage", player, useFallbackPermissions) && !sessionManager.isFrozen(player);
     }
 }

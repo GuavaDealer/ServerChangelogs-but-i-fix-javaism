@@ -104,3 +104,9 @@ dialog: # Translations for the plugin's dialog UIs
     button:
       close: "<translate:icon.confirm> <green>Exit"
     read: "<prefix><translate:icon.confirm> <green>Marked <yellow><arg:0></yellow> entries as read!"
+    manage:
+      confirm_delete:
+        title: "<translate:icon.warning> <red><b>Confirm Deletion"
+        content: |-
+          Are you sure that you want to <b><red>delete</b></red> the selected changelog?
+          Please note that this action <b><red>CANNOT BE UNDONE</b></red>!

@@ -43,10 +43,11 @@ public interface IDialog {
                     plugin.pluginConfig().useNativeFallbackPermissions()
             ));
             register.accept(new ChangelogDialog(
-                    plugin.getChangelogStorage(),
+                    plugin.getChangelogStorage(), this,
                     plugin.pluginConfig().getDateFormatter(),
                     plugin.pluginConfig().showChangelogHeader(),
-                    plugin.pluginConfig().createChangelogHeaderStack()
+                    plugin.pluginConfig().createChangelogHeaderStack(),
+                    plugin.pluginConfig().useNativeFallbackPermissions()
             ));
         }
 

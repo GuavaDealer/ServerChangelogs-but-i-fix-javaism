@@ -110,9 +110,13 @@ public class DialogSessionManager implements PacketListener {
     }
 
     public @NotNull Action createSessionBasedAction(@NotNull IDialog dialog, @NotNull String id, boolean includeInputs) {
+        return this.createSessionBasedAction(dialog, id, null, includeInputs);
+    }
+
+    public @NotNull Action createSessionBasedAction(@NotNull IDialog dialog, @NotNull String id, @Nullable NBTCompound data, boolean includeInputs) {
         Key key = this.createSessionBasedKey(dialog, id);
-        CustomClickEvent clickEvent = new CustomClickEvent(new ResourceLocation(key), null);
-        return includeInputs ? new DynamicCustomAction(clickEvent.getId(), null) : new StaticAction(clickEvent);
+        CustomClickEvent clickEvent = new CustomClickEvent(new ResourceLocation(key), data);
+        return includeInputs ? new DynamicCustomAction(clickEvent.getId(), data) : new StaticAction(clickEvent);
     }
 
     public @NotNull ClickEvent<?> createSessionBasedClickEvent(@NotNull IDialog dialog, @NotNull String id) {
@@ -158,6 +162,11 @@ public class DialogSessionManager implements PacketListener {
 
     public <T> @NotNull T getSessionData(@NotNull IPlayer player, @NotNull Class<T> dataType) throws ClassCastException {
         return dataType.cast(this.sessionData.get(player.getUniqueId()));
+    }
+
+    public boolean isFrozen(@NotNull IPlayer player) {
+        CompletableFuture<?> future = this.frozenViewers.get(player.getUniqueId());
+        return future != null && !future.isDone();
     }
 
     public void unfreeze(@NotNull IPlayer player) {
