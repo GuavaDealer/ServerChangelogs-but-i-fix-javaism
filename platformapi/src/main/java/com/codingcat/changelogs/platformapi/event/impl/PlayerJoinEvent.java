@@ -9,4 +9,5 @@ import org.jetbrains.annotations.NotNull;
 @RequiredArgsConstructor
 public final class PlayerJoinEvent implements IEvent {
     private final @NotNull IPlayer player;
+    private final boolean justConnected;
 }

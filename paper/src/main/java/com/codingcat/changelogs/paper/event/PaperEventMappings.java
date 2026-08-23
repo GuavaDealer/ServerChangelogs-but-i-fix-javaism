@@ -15,12 +15,12 @@ public final class PaperEventMappings extends PlatformEventMappings<Event> {
         this.register(
                 PlayerJoinEvent.class,
                 org.bukkit.event.player.PlayerJoinEvent.class,
-                ev -> new PlayerJoinEvent(pm.fromNative(ev.getPlayer()))
+                ev -> new PlayerJoinEvent(pm.fromNative(ev.getPlayer()), true)
         );
         this.register(
                 PlayerEnterConfigurationPhaseEvent.class,
                 AsyncPlayerConnectionConfigureEvent.class,
-                ev -> new PlayerEnterConfigurationPhaseEvent(new PaperConfigurationPhaseConnectionWrapper(ev.getConnection()))
+                ev -> new PlayerEnterConfigurationPhaseEvent(new PaperConfigurationPhaseConnectionWrapper(ev.getConnection()), true)
         );
     }
 }
