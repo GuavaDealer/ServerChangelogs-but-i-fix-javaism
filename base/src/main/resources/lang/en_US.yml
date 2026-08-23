@@ -83,6 +83,8 @@ dialog: # Translations for the plugin's dialog UIs
         You have the option to <green>save your work</green> until the <aqua>next time</aqua> you open the editor.
         If you do not want to <green>save the session</green> and <yellow>start over</yellow> next time, you can <red>discard</red> it.
         You also have the option to <gold>go back</gold> to editing your current changelog.
+        
+        <translate:icon.attention> Note that <green>saved</green> sessions <red><b>WILL NOT</b></red> survive server <red>restarts</red>!
     error:
       create:
         internal_error: "<translate:icon.deny> <red>An internal error occurred while trying to publish your dialog.\n\nMore details have been logged to the server's console."
