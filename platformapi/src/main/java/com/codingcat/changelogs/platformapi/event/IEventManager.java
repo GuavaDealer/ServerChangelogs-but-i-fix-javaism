@@ -1,6 +1,7 @@
 package com.codingcat.changelogs.platformapi.event;
 
 import com.codingcat.changelogs.platformapi.event.impl.IEvent;
+import com.codingcat.changelogs.platformapi.event.util.MethodDispatchingListener;
 import net.kyori.adventure.key.Key;
 import org.jetbrains.annotations.NotNull;
 

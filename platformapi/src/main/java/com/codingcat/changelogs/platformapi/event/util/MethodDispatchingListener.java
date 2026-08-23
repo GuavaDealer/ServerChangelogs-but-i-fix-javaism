@@ -1,5 +1,6 @@
-package com.codingcat.changelogs.platformapi.event;
+package com.codingcat.changelogs.platformapi.event.util;
 
+import com.codingcat.changelogs.platformapi.event.IEventManager;
 import com.codingcat.changelogs.platformapi.event.impl.IEvent;
 import org.jetbrains.annotations.NotNull;
 
