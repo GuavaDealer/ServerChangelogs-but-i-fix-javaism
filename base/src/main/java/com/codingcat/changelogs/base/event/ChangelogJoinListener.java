@@ -29,11 +29,12 @@ public class ChangelogJoinListener {
 
     public void registerEvents(@NotNull IEventManager manager) {
         switch (config.getDialogPacketPhase()) {
-            case PLAY -> manager.registerIdentified(PlayerJoinEvent.class, KEY, e -> checkShowDialog(e.getPlayer()));
+            case PLAY ->
+                    manager.registerIdentified(PlayerJoinEvent.class, KEY, e -> checkShowDialog(e.getPlayer(), false));
             case CONFIGURATION -> manager.registerIdentified(PlayerEnterConfigurationPhaseEvent.class, KEY, e -> {
-                if (checkShowDialog(e.getPlayer())) {
+                if (checkShowDialog(e.getPlayer(), true)) {
                     info("console.join.frozen", text(e.getPlayer().getUniqueId().toString()));
-                    sessionManager.freezeAndWaitFor(e.getPlayer());
+                    sessionManager.waitForUnfreeze(e.getPlayer());
                 }
             });
         }
@@ -43,12 +44,13 @@ public class ChangelogJoinListener {
         manager.unregisterIdentified(KEY);
     }
 
-    public boolean checkShowDialog(@NotNull IPlayer player) {
+    public boolean checkShowDialog(@NotNull IPlayer player, boolean freeze) {
         if (player.isFirstJoin()) return false;
         boolean unreadChangelogs = this.storageSupplier.get().listEntries().stream()
                 .anyMatch(e -> !e.hasRead(player));
         if (!unreadChangelogs) return false;
         ChangelogDialog dialog = this.dialogHolder.getFromType(ChangelogDialog.class);
+        if (freeze) this.sessionManager.freeze(player);
         dialog.showTo(player, this.sessionManager, config.getDialogPacketPhase());
         return true;
     }

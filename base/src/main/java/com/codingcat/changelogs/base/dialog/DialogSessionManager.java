@@ -174,9 +174,13 @@ public class DialogSessionManager implements PacketListener {
         if (future != null) future.complete(null);
     }
 
-    public void freezeAndWaitFor(@NotNull IPlayer player) {
-        CompletableFuture<?> future = new CompletableFuture<>();
-        this.frozenViewers.put(player.getUniqueId(), future);
+    public void freeze(@NotNull IPlayer player) {
+        this.frozenViewers.computeIfAbsent(player.getUniqueId(), _ -> new CompletableFuture<>());
+    }
+
+    public void waitForUnfreeze(@NotNull IPlayer player) {
+        CompletableFuture<?> future = this.frozenViewers.get(player.getUniqueId());
+        if (future == null) return;
         try {
             future.join();
         } catch (CancellationException | CompletionException _) {
