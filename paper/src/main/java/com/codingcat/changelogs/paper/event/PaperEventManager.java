@@ -3,6 +3,7 @@ package com.codingcat.changelogs.paper.event;
 import com.codingcat.changelogs.paper.player.PaperPlayerManager;
 import com.codingcat.changelogs.platformapi.event.IEventManager;
 import com.codingcat.changelogs.platformapi.event.impl.IEvent;
+import com.codingcat.changelogs.platformapi.event.util.PlatformEventMappings;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.event.*;
@@ -31,19 +32,15 @@ public class PaperEventManager implements IEventManager {
 
     @Override
     public <T extends IEvent> void registerListener(@NotNull Class<T> eventCls, @NotNull Consumer<T> listener) {
-        PaperEventMappings.EventMapping<T, ?> mapping = Objects.requireNonNull(eventMappings, "Event mappings not initialized").findForPlatformEvent(eventCls);
+        PlatformEventMappings.Mapping<Event, T, ?> mapping = Objects.requireNonNull(eventMappings, "Event mappings not initialized").findForPlatformEvent(eventCls);
         PlatformMappingListener<T> mappingListener = new PlatformMappingListener<>(listener, mapping);
-        this.pluginManager.registerEvent(mapping.paperEventCls(), mappingListener, EventPriority.NORMAL, mappingListener, plugin);
+        this.pluginManager.registerEvent(mapping.nativeEventCls(), mappingListener, EventPriority.NORMAL, mappingListener, plugin);
         this.listenerSet.add(mappingListener);
     }
 
     @Override
     public void unregisterListener(@NotNull Consumer<?> listener) {
-        Predicate<PlatformMappingListener<?>> predicate = l -> l.listener.equals(listener);
-        this.listenerSet.stream()
-                .filter(predicate)
-                .forEach(HandlerList::unregisterAll);
-        this.listenerSet.removeIf(predicate);
+        this.unregisterIf(l -> l.equals(listener));
     }
 
     @Override
@@ -64,13 +61,13 @@ public class PaperEventManager implements IEventManager {
     @RequiredArgsConstructor
     private static final class PlatformMappingListener<T extends IEvent> implements Listener, EventExecutor {
         private final @Getter Consumer<T> listener;
-        private final @NotNull PaperEventMappings.EventMapping<T, ?> mapping;
+        private final @NotNull PlatformEventMappings.Mapping<Event, T, ?> mapping;
 
         @Override
         public void execute(@NotNull Listener listener, @NotNull Event event) throws EventException {
             try {
                 //noinspection unchecked
-                T platformEvent = ((PaperEventMappings.EventMapping<T, Event>) mapping).convertToPlatform(event);
+                T platformEvent = ((PlatformEventMappings.Mapping<Event, T, Event>) mapping).convertToPlatform(event);
                 this.listener.accept(platformEvent);
             } catch (Throwable e) {
                 throw new EventException(e, "Failed to handle event " + event + " (platform " + mapping.platformEventCls() + ")");
