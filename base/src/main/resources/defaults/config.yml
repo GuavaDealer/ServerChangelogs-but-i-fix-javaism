@@ -18,7 +18,7 @@ changelog_storage: yaml
 # hh = the hour (12-hour format; 2 digits)
 # mm = the minute (2 digits)
 # ss = the second (2 digits)
-date_format: "yyyy/dd/MM"
+date_format: "MM/dd/yyyy"
 
 # The timezone in which the time a changelog was published at will be displayed.
 # This can be a text identifier, such as "Europe/Paris" or a UTC offset specifier like "UTC+1".
