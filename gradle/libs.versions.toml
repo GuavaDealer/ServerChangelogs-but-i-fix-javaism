@@ -11,3 +11,4 @@ packetevents-paper = { group = "com.github.retrooper", name = "packetevents-spig
 
 [plugins]
 lombok = { id = "io.freefair.lombok", version = "9.5.0"}
+shadow = { id = "com.gradleup.shadow", version = "9.6.1"}
