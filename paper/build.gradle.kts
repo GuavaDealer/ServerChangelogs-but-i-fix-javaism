@@ -21,6 +21,7 @@ dependencies {
 paperPluginYaml {
     name = rootProject.name
     main = "${group}.changelogs.paper.PaperChangelogsPlatform"
+    website = project.property("url") as String
     apiVersion = project.property("minecraft_version_compat").toString()
     foliaSupported = true
 

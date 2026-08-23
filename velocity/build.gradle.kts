@@ -23,6 +23,7 @@ dependencies {
 velocityPluginJson {
     id = "server-changelogs"
     name = rootProject.name
+    url = project.property("url") as String
 
     main = "${group}.changelogs.velocity.VelocityChangelogsPlatform"
     authors.addAll("codingcat2468")
