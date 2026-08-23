@@ -29,9 +29,12 @@ Currently, the plugin supports the following features:
 - Customizable **translations** based on the player's **client language**
 
 ## Supported Server Software & Versions
-ServerChangelogs is a **Paper plugin**, meaning it will only run on **Paper** servers, including forks like **Purpur** etc.
+ServerChangelogs is currently available as:
+- a **Paper** plugin (meaning it will only run on **Paper** servers, including forks like **Purpur** etc.)
+- a **Velocity** plugin (which runs on the proxy itself, no matter what backend servers are used)
 
-The initial version of the plugin is built against **26.1.2**, which doesn't always imply it won't work on lower versions. The backwards-compatibility of the Paper API can sometimes work pretty well, but that's not always the case.
+For paper, the initial version of the plugin is built against **26.1.2**, which doesn't always imply it won't work on lower versions. The backwards-compatibility of the Paper API can sometimes work pretty well, but that's not always the case.
+This should again not be a concern for velocity, since the version of the client matters less there. Do note that this plugin relies on dialogs a lot, which are only available starting with `1.21.6`.
 
 In case something does break on earlier versions, let me know and [create an issue](https://github.com/codingcat2468/ServerChangelogs/issues/new) *(as long as you're not trying to run it on 1.8)*, and I **might** be able to take a look at it! Also, keep in mind that I won't keep the version number above updated very frequently, and that updates aren't always necessary to support a new version, so just give it a try!
 
@@ -110,7 +113,6 @@ If multiple arguments are present in a certain translation, they can be identifi
 ServerChangelogs was originally made for a **smaller minecraft server** I'm a part of, to make players aware of changes without having to rely on e.g. **Discord**. Because we wanted this feature to be available pretty fast, the plugin initially won't have as many features as I'd like it to have.
 
 The roadmap below contains some of the features that I'm **planning to add** in the future:
-- [ ] **Velocity Support** *(and others)*: In `v1.1.0`, I've done a lot of internal restructuring to separate the plugin base from the paper APIs, including switching to PacketEvents for the dialogs, and writing a small abstraction layer for platform-specific APIs. This should make it decently easy to add support for something like velocity, which I'll try to work on very soon!
 - [ ] **Pre-defined authors**: Rather than having to enter the name of the changelog's author every time (possibly including formatting), there could be a list of pre-defined authors in the plugin config that a user could choose from.
 - [ ] **Customizable changelog dialog layout**: Currently, the changelog dialog always shows all previous changelogs, with unread ones marked red. In the future, it'd be nice to have an option for this, e.g. so players on join could also only see the most recent changelog.
 - [ ] **Paged changelogs**: At the moment, all existing changelogs are just added to the dialog without any additional checks. While this is fine with just a few of them, it could quickly become an issue with a long history of changelogs. So adding a page system with a configurable amount of changelogs per page would be great!
