@@ -1,2 +1,2 @@
 rootProject.name = "ServerChangelogs"
-include("base", "platformapi", "paper")
+include("base", "platformapi", "paper", "velocity")
