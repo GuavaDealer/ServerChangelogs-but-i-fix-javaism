@@ -46,14 +46,14 @@ After that, **restart your server** and the plugin should **generate** all the c
 The plugin provides a few commands, to which access can be controlled using the following permissions:
 <table>
   <tr>
-    <th>Command</th>
+    <th>Plugin Command</th>
     <th>Permission</th>
     <th>Description</th>
   </tr>
   <tr>
-    <td><code>/server_changelogs</code></td>
-    <td>server_changelogs.command.root</td>
-    <td>Provides version information about the plugin</td>
+    <td><code>/scl info</code></td>
+    <td>server_changelogs.command.info</td>
+    <td>Provides version information about the plugin & platform</td>
   </tr>
   <tr>
     <td><code>/scl create</code></td>
@@ -83,7 +83,7 @@ The plugin provides a few commands, to which access can be controlled using the 
 </table>
 
 Note that `/server_changelogs`, `/changelogs` and `/scl` are just **aliases** of the
-**same command** (they do the same thing and are controlled by the same permission)!
+**same command** (they do the same thing and are controlled by the same permissions)!
 
 ## Configuration & Language
 The plugin configuration can be found in `config.yml` and includes a few basic options for storage, formatting and UI layout.
