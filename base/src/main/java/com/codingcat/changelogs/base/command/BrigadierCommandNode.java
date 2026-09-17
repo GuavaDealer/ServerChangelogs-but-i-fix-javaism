@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 public interface BrigadierCommandNode {
-    @NotNull Set<BrigadierCommandNode> SUB_COMMANDS = DialogSubCommands.withDialogs(new ReloadSubCommand());
+    @NotNull Set<BrigadierCommandNode> SUB_COMMANDS = DialogSubCommands.withDialogs(new ReloadSubCommand(), new InfoSubCommand());
 
     @NotNull LiteralCommandNode<Object> build(@NotNull ServerChangelogs plugin);
 

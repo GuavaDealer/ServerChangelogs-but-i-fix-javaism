@@ -13,7 +13,6 @@ import com.codingcat.changelogs.platformapi.ChangelogsPlatform;
 import com.codingcat.changelogs.platformapi.Entrypoint;
 import com.codingcat.changelogs.platformapi.command.ICommandManager;
 import com.codingcat.changelogs.platformapi.event.IEventManager;
-import com.mojang.brigadier.Command;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import lombok.Getter;
 import net.kyori.adventure.key.Key;
@@ -34,7 +33,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 
-import static com.codingcat.changelogs.base.command.BrigadierCommandNode.requirePermission;
 import static com.codingcat.changelogs.base.lang.TranslationSource.translatable;
 import static com.mojang.brigadier.builder.LiteralArgumentBuilder.literal;
 import static net.kyori.adventure.text.Component.text;
@@ -97,12 +95,7 @@ public final class ServerChangelogs extends Entrypoint {
     }
 
     private void registerCommands(@NotNull ICommandManager commandManager) {
-        LiteralCommandNode<Object> rootNode = literal(NAMESPACE)
-                .requires(requirePermission("command", this, false))
-                .executes(ctx -> {
-                    commandManager.adaptPlatformSource(ctx.getSource()).asAudience().sendMessage(translatable("command.root"));
-                    return Command.SINGLE_SUCCESS;
-                }).build();
+        LiteralCommandNode<Object> rootNode = literal(NAMESPACE).build();
         BrigadierCommandNode.SUB_COMMANDS.forEach(c -> rootNode.addChild(c.build(this)));
         commandManager.register(rootNode, Set.of("changelogs", "scl"));
         if (this.config.registerDedicatedCommand())
