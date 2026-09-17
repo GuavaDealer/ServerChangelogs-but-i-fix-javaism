@@ -1,6 +1,7 @@
 package com.codingcat.changelogs.base.config;
 
 import com.codingcat.changelogs.base.ServerChangelogs;
+import com.codingcat.changelogs.base.compat.PacketEventsFix;
 import com.codingcat.changelogs.base.data.ChangelogStorage;
 import com.codingcat.changelogs.base.dialog.DialogPackets;
 import com.codingcat.changelogs.platformapi.item.NativeItemManager;
@@ -18,9 +19,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 public class PluginConfig extends Yaml {
@@ -48,6 +48,7 @@ public class PluginConfig extends Yaml {
             createChangelogStorage();
             getDateFormatter();
             createChangelogHeaderStack();
+            getEnabledManualWorkarounds();
             return null;
         } catch (Exception e) {
             return e.getMessage();
@@ -70,10 +71,21 @@ public class PluginConfig extends Yaml {
     public @NotNull DialogPackets.PacketPhase getDialogPacketPhase() {
         String rawPhase = getString("dialog_phase", DialogPackets.PacketPhase.PLAY.name());
         try {
-            return DialogPackets.PacketPhase.valueOf(rawPhase);
+            return DialogPackets.PacketPhase.valueOf(rawPhase.toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Invalid dialog phase \"" + rawPhase + "\"");
         }
+    }
+
+    public @NotNull Set<PacketEventsFix.Workaround> getEnabledManualWorkarounds() {
+        List<String> rawWorkarounds = getList("enable_manual_workarounds", String.class);
+        return rawWorkarounds.stream().map(workaround -> {
+            try {
+                return PacketEventsFix.Workaround.valueOf(workaround.toUpperCase(Locale.ROOT));
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid manual workaround ID \"" + workaround + "\"");
+            }
+        }).collect(Collectors.toUnmodifiableSet());
     }
 
     public boolean showChangelogHeader() {
@@ -95,6 +107,12 @@ public class PluginConfig extends Yaml {
 
     private boolean getBoolean(@NotNull String key, boolean defaultValue) {
         return (boolean) this.data.getOrDefault(key, defaultValue);
+    }
+
+    private <T> @NotNull List<T> getList(@NotNull String key, @NotNull Class<T> cls) {
+        List<?> list = (List<?>) this.data.get(key);
+        if (list == null) return List.of();
+        return list.stream().map(cls::cast).toList();
     }
 
     @SuppressWarnings("PatternValidation")

@@ -57,7 +57,6 @@ public final class ServerChangelogs extends Entrypoint {
     @Override
     public void onStart() {
         logger = getPlatform().getComponentLogger();
-        PacketEventsFix.checkAndLoad(logger);
         Path translationPath = getPlatform().getDataPath().resolve("lang");
         if (translationPath.toFile().mkdirs()) {
             logger.info("Creating default translation files...");
@@ -87,6 +86,7 @@ public final class ServerChangelogs extends Entrypoint {
         this.changelogStorage = this.config.createChangelogStorage();
         info("console.startup_storage", text(this.changelogStorage.getDisplayName()));
         this.changelogStorage.init();
+        PacketEventsFix.setManualWorkarounds(config.getEnabledManualWorkarounds(), logger);
         this.dialogHolder = new IDialog.Holder(this);
         this.dialogHolder.recreate();
         this.dialogSessionManager = new DialogSessionManager(this.dialogHolder, getPlatform().getPlayerManager());
@@ -115,6 +115,7 @@ public final class ServerChangelogs extends Entrypoint {
         this.changelogStorage = this.config.createChangelogStorage();
         info("console.startup_storage", text(this.changelogStorage.getDisplayName()));
         this.changelogStorage.init();
+        PacketEventsFix.setManualWorkarounds(config.getEnabledManualWorkarounds(), logger);
         this.dialogHolder.recreate();
         IEventManager eventManager = getPlatform().getEventManager();
         this.joinListener.unregisterEvents(eventManager);

@@ -37,6 +37,16 @@ public final class PacketEventsFix {
         }
     }
 
+    public static void setManualWorkarounds(@NotNull Set<Workaround> manualWorkarounds, @NotNull ComponentLogger logger) {
+        checkAndLoad(logger);
+        enabledWorkarounds.addAll(manualWorkarounds);
+        if (!manualWorkarounds.isEmpty()) {
+            logger.warn("Manual workarounds for PacketEvents issues have been enabled. This may cause unintended behavior if activated by accident!");
+            List<String> workaroundNames = manualWorkarounds.stream().map(Enum::name).toList();
+            logger.warn("Enabled manual workarounds: {}", String.join(", ", workaroundNames));
+        }
+    }
+
     public static void checkAndLoad(@NotNull ComponentLogger logger) {
         enabledWorkarounds = Arrays.stream(Workaround.values())
                 .filter(Workaround::isAffected)
