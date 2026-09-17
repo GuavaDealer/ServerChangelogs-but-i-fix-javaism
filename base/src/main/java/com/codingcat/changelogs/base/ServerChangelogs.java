@@ -2,6 +2,7 @@ package com.codingcat.changelogs.base;
 
 import com.codingcat.changelogs.base.command.BrigadierCommandNode;
 import com.codingcat.changelogs.base.command.DialogSubCommands;
+import com.codingcat.changelogs.base.compat.PacketEventsFix;
 import com.codingcat.changelogs.base.config.PluginConfig;
 import com.codingcat.changelogs.base.data.ChangelogStorage;
 import com.codingcat.changelogs.base.dialog.DialogSessionManager;
@@ -56,6 +57,7 @@ public final class ServerChangelogs extends Entrypoint {
     @Override
     public void onStart() {
         logger = getPlatform().getComponentLogger();
+        PacketEventsFix.checkAndLoad(logger);
         Path translationPath = getPlatform().getDataPath().resolve("lang");
         if (translationPath.toFile().mkdirs()) {
             logger.info("Creating default translation files...");

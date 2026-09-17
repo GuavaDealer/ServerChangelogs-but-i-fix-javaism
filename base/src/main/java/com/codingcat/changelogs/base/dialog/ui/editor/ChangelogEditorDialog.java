@@ -1,6 +1,7 @@
 package com.codingcat.changelogs.base.dialog.ui.editor;
 
 import com.codingcat.changelogs.base.ServerChangelogs;
+import com.codingcat.changelogs.base.compat.PacketEventsFix;
 import com.codingcat.changelogs.base.data.ChangelogStorage;
 import com.codingcat.changelogs.base.dialog.DialogPackets;
 import com.codingcat.changelogs.base.dialog.DialogSessionManager;
@@ -80,10 +81,11 @@ public class ChangelogEditorDialog implements IDialog {
             if (!isEditing) finalCmp = finalCmp.append(edit).appendSpace();
             return finalCmp.append(remove);
         };
-        List<DialogBody> body = List.of(
-                new ItemDialogBody(ItemStack.builder().type(ItemTypes.WRITABLE_BOOK).build(),
-                        new PlainMessage(translatableManual(p, sessionTranslation + ".subtitle", text(session.getEntryUID() + 1)), 160),
-                        false, false, 15, 15),
+        ItemDialogBody itemBody = new ItemDialogBody(ItemStack.builder().type(ItemTypes.WRITABLE_BOOK).build(),
+                new PlainMessage(translatableManual(p, sessionTranslation + ".subtitle", text(session.getEntryUID() + 1)), 160),
+                false, false, 15, 15);
+        PacketEventsFix.fixItemBody(itemBody);
+        List<DialogBody> body = List.of(itemBody,
                 new PlainMessageDialogBody(new PlainMessage(translatableManual(p, "dialog.editor.hint"), ChangelogDialog.LINE_WIDTH)),
                 new PlainMessageDialogBody(new PlainMessage(!previewLines.isEmpty() ? createLinesComponent(p, lineMapper, previewLines) : translatableManual(p, "dialog.editor.empty_preview"), ChangelogDialog.LINE_WIDTH))
         );

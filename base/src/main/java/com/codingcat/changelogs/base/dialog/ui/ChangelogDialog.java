@@ -1,5 +1,6 @@
 package com.codingcat.changelogs.base.dialog.ui;
 
+import com.codingcat.changelogs.base.compat.PacketEventsFix;
 import com.codingcat.changelogs.base.data.ChangelogEntry;
 import com.codingcat.changelogs.base.data.ChangelogStorage;
 import com.codingcat.changelogs.base.dialog.DialogPackets;
@@ -63,7 +64,12 @@ public class ChangelogDialog implements IDialog {
         if (this.addHeader) {
             body = new ArrayList<>(body);
             PlainMessage headerMessage = new PlainMessage(translatableManual(p, "dialog.changelog.header"), 260);
-            body.addFirst(headerItem != null ? new ItemDialogBody(headerItem, headerMessage, false, false, 17, 17) : new PlainMessageDialogBody(headerMessage));
+            ItemDialogBody itemBody = null;
+            if (headerItem != null) {
+                itemBody = new ItemDialogBody(headerItem, headerMessage, false, false, 17, 17);
+                PacketEventsFix.fixItemBody(itemBody);
+            }
+            body.addFirst(headerItem != null ? itemBody : new PlainMessageDialogBody(headerMessage));
         }
         CommonDialogData common = new CommonDialogData(
                 translatableManual(p, "dialog.changelog.title"),
