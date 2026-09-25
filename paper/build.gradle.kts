@@ -1,9 +1,9 @@
 plugins {
-    id("java")
+    java
     alias(libs.plugins.lombok)
     alias(libs.plugins.shadow)
-    id("xyz.jpenilla.run-paper") version "3.0.2"
-    id("xyz.jpenilla.resource-factory-paper-convention") version "1.3.1"
+    alias(libs.plugins.run.paper)
+    alias(libs.plugins.resource.factory.paper.convention)
 }
 
 repositories {
@@ -11,11 +11,12 @@ repositories {
     maven("https://repo.papermc.io/repository/maven-public/")
 }
 
+@Suppress("VulnerableLibrariesLocal")
 dependencies {
     implementation(project(":base"))
     implementation(project(":platformapi"))
     compileOnly(libs.packetevents.paper)
-    compileOnly("io.papermc.paper:paper-api:26.1.2.build.+")
+    compileOnly(libs.paper.api)
 }
 
 paperPluginYaml {
@@ -35,9 +36,6 @@ java {
 
 tasks {
     runServer {
-        // Configure the Minecraft version for our task.
-        // This is the only required configuration besides applying the plugin.
-        // Your plugin's jar (or shadowJar if present) will be used automatically.
         minecraftVersion(project.property("minecraft_version").toString())
         jvmArgs("-Xms1G", "-Xmx1G")
     }
