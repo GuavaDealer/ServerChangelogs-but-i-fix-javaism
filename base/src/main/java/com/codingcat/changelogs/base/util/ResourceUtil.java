@@ -21,8 +21,7 @@ public final class ResourceUtil {
         Collection<String> resources = listResources(dirPath);
         Map<String, String> data = new HashMap<>();
         for (String resource : resources) {
-            Path path = Path.of(dirPath).resolve(resource);
-            String string = readResourceAsString(path.toString());
+            String string = readResourceAsString(dirPath + "/" + resource);
             data.put(resource, string);
         }
         return data;
