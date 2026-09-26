@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.key.Key;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.Instant;
 import java.util.function.Supplier;
 
 import static com.codingcat.changelogs.base.ServerChangelogs.info;
@@ -45,9 +46,14 @@ public class ChangelogJoinListener {
     }
 
     public boolean checkShowDialog(@NotNull IPlayer player, boolean freeze) {
-        if (player.isFirstJoin()) return false;
-        boolean unreadChangelogs = this.storageSupplier.get().listEntries().stream()
-                .anyMatch(e -> !e.hasRead(player));
+        ChangelogStorage storage = this.storageSupplier.get();
+        Instant firstSeenAt = storage.getFirstSeenAt(player.getUniqueId());
+        if (firstSeenAt == null) {
+            storage.recordFirstSeen(player.getUniqueId(), Instant.now());
+            return false;
+        }
+        boolean unreadChangelogs = storage.listEntries().stream()
+                .anyMatch(e -> storage.isUnreadFor(e, player.getUniqueId()));
         if (!unreadChangelogs) return false;
         ChangelogDialog dialog = this.dialogHolder.getFromType(ChangelogDialog.class);
         if (freeze) this.sessionManager.freeze(player);
