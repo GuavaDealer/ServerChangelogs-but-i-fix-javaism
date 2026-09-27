@@ -2,10 +2,16 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/base/ServerChangelogs.base.main.iml" filepath="$PROJECT_DIR$/.idea/modules/base/ServerChangelogs.base.main.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/paper/ServerChangelogs.paper.main.iml" filepath="$PROJECT_DIR$/.idea/modules/paper/ServerChangelogs.paper.main.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/platformapi/ServerChangelogs.platformapi.main.iml" filepath="$PROJECT_DIR$/.idea/modules/platformapi/ServerChangelogs.platformapi.main.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/velocity/ServerChangelogs.velocity.main.iml" filepath="$PROJECT_DIR$/.idea/modules/velocity/ServerChangelogs.velocity.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/ServerChangelogs.iml" filepath="$PROJECT_DIR$/.idea/modules/ServerChangelogs.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/buildSrc/ServerChangelogs.buildSrc.iml" filepath="$PROJECT_DIR$/.idea/modules/buildSrc/ServerChangelogs.buildSrc.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/src/base/com.codingcat.ServerChangelogs.base.main.iml" filepath="$PROJECT_DIR$/.idea/modules/src/base/com.codingcat.ServerChangelogs.base.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/src/base/com.codingcat.ServerChangelogs.base.test.iml" filepath="$PROJECT_DIR$/.idea/modules/src/base/com.codingcat.ServerChangelogs.base.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/src/paper/com.codingcat.ServerChangelogs.paper.main.iml" filepath="$PROJECT_DIR$/.idea/modules/src/paper/com.codingcat.ServerChangelogs.paper.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/src/paper/com.codingcat.ServerChangelogs.paper.test.iml" filepath="$PROJECT_DIR$/.idea/modules/src/paper/com.codingcat.ServerChangelogs.paper.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/src/platformapi/com.codingcat.ServerChangelogs.platformapi.main.iml" filepath="$PROJECT_DIR$/.idea/modules/src/platformapi/com.codingcat.ServerChangelogs.platformapi.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/src/platformapi/com.codingcat.ServerChangelogs.platformapi.test.iml" filepath="$PROJECT_DIR$/.idea/modules/src/platformapi/com.codingcat.ServerChangelogs.platformapi.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/src/velocity/com.codingcat.ServerChangelogs.velocity.main.iml" filepath="$PROJECT_DIR$/.idea/modules/src/velocity/com.codingcat.ServerChangelogs.velocity.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/src/velocity/com.codingcat.ServerChangelogs.velocity.test.iml" filepath="$PROJECT_DIR$/.idea/modules/src/velocity/com.codingcat.ServerChangelogs.velocity.test.iml" />
     </modules>
   </component>
 </project>
