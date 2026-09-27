@@ -5,6 +5,8 @@ plugins {
 
 dependencies {
     implementation(project(":platformapi"))
+    // Since SnakeYAML is included in some platforms, it is included as compileOnly here
+    // The library can be declared as implementation and shadowed on platforms where it is not natively included
     compileOnly(libs.snakeyaml)
     compileOnly(libs.adventure.api)
     compileOnly(libs.adventure.slf4j)
