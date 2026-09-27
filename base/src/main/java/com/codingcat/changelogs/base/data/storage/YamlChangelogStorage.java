@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 public class YamlChangelogStorage implements ChangelogStorage {
+    private static final @NotNull DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ISO_INSTANT;
     private final @NotNull Path filePath;
     private List<ChangelogEntry> cache;
     private Map<UUID, Instant> playerFirstSeen;
@@ -72,14 +73,9 @@ public class YamlChangelogStorage implements ChangelogStorage {
         List<Map<String, Object>> entries = this.cache.stream()
                 .map(this::serializeEntry)
                 .toList();
-        Map<String, String> firstSeen = this.playerFirstSeen.entrySet().stream()
-                .collect(Collectors.toMap(
-                        entry -> entry.getKey().toString(),
-                        entry -> DateTimeFormatter.ISO_INSTANT.format(entry.getValue())
-                ));
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("entries", entries);
-        data.put("playerFirstSeen", firstSeen);
+        data.put("playerFirstSeen", this.serializePlayerFirstSeen());
         try (FileOutputStream os = new FileOutputStream(filePath.toFile())) {
             config.dump(data, new BufferedWriter(new OutputStreamWriter(os)));
         } catch (IOException e) {
@@ -123,22 +119,23 @@ public class YamlChangelogStorage implements ChangelogStorage {
 
     private @NotNull Map<UUID, Instant> deserializePlayerFirstSeen(@NotNull Map<String, Object> config) {
         try {
-            Object rawFirstSeen = config.get("playerFirstSeen");
+            //noinspection unchecked
+            Map<String, String> rawFirstSeen = (Map<String, String>) config.get("playerFirstSeen");
             if (rawFirstSeen == null) return new HashMap<>();
-            if (!(rawFirstSeen instanceof Map<?, ?> firstSeen))
-                throw new IllegalArgumentException("playerFirstSeen must be a map");
-            Map<UUID, Instant> results = new HashMap<>();
-            firstSeen.forEach((rawPlayer, rawInstant) -> {
-                UUID player = UUID.fromString(Objects.requireNonNull(rawPlayer, "player UUID").toString());
-                Instant seenAt = DateTimeFormatter.ISO_INSTANT.parse(
-                        Objects.requireNonNull(rawInstant, "first-seen timestamp").toString(), Instant::from
-                );
-                results.put(player, seenAt);
-            });
-            return results;
+            return rawFirstSeen.entrySet().stream().collect(Collectors.toMap(
+                    e -> UUID.fromString(e.getKey()),
+                    e -> DATE_FORMATTER.parse(e.getValue(), Instant::from)
+            ));
         } catch (Exception e) {
             throw new RuntimeException("Failed to deserialize player first-seen data", e);
         }
+    }
+
+    private @NotNull Map<String, String> serializePlayerFirstSeen() {
+        return this.playerFirstSeen.entrySet().stream().collect(Collectors.toMap(
+                entry -> entry.getKey().toString(),
+                entry -> DATE_FORMATTER.format(entry.getValue())
+        ));
     }
 
     private @NotNull Map<String, Object> serializeEntry(@NotNull ChangelogEntry entry) {
@@ -147,7 +144,7 @@ public class YamlChangelogStorage implements ChangelogStorage {
                 .stream().map(GsonComponentSerializer.gson()::serialize)
                 .toList();
         data.put("serializedLines", serializedLines);
-        String recordedAtRaw = DateTimeFormatter.ISO_INSTANT.format(entry.recordedAt());
+        String recordedAtRaw = DATE_FORMATTER.format(entry.recordedAt());
         data.put("recordedAt", recordedAtRaw);
         String serializedAuthor = Optional.ofNullable(entry.author())
                 .map(GsonComponentSerializer.gson()::serialize)
@@ -188,9 +185,9 @@ public class YamlChangelogStorage implements ChangelogStorage {
 
     @Override
     public boolean recordFirstSeen(@NotNull UUID player, @NotNull Instant seenAt) {
-        if (this.playerFirstSeen.putIfAbsent(player, seenAt) != null) return false;
-        this.save();
-        return true;
+        boolean recorded = this.playerFirstSeen.putIfAbsent(player, seenAt) != null;
+        if (recorded) this.save();
+        return recorded;
     }
 
     @Override
