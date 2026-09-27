@@ -18,6 +18,11 @@ sealed class EditorSession(
     @Throws(CommitException::class)
     abstract fun commit(storage: ChangelogStorage)
 
+    @Throws(CommitException::class)
+    open suspend fun commitAsync(storage: ChangelogStorage) {
+        commit(storage)
+    }
+
     abstract val id: String
 
     abstract val permission: String
@@ -53,6 +58,22 @@ sealed class EditorSession(
                 throw CommitException("internal_error")
             }
         }
+
+        @Throws(CommitException::class)
+        override suspend fun commitAsync(storage: ChangelogStorage) {
+            val newEntry = ChangelogEntry(
+                entryUID,
+                this.deserializeLines(),
+                Instant.now(),
+                this.deserializeAuthor(),
+                mutableSetOf(),
+            )
+            runCatching {
+                storage.storeEntryAsync(newEntry)
+            }.getOrElse {
+                throw CommitException("internal_error")
+            }
+        }
     }
 
     class Edit(entry: ChangelogEntry) : EditorSession(entry.uid) {
@@ -79,6 +100,24 @@ sealed class EditorSession(
             )
             runCatching {
                 storage.updateEntry(newEntry)
+            }.getOrElse {
+                throw CommitException("internal_error")
+            }
+        }
+
+        @Throws(CommitException::class)
+        override suspend fun commitAsync(storage: ChangelogStorage) {
+            val currentEntry: ChangelogEntry = storage.getByUID(entryUID)
+                ?: throw CommitException("entry_deleted")
+            val newEntry = ChangelogEntry(
+                currentEntry.uid,
+                this.deserializeLines(),
+                currentEntry.recordedAt,
+                this.deserializeAuthor(),
+                currentEntry.playersRead,
+            )
+            runCatching {
+                storage.updateEntryAsync(newEntry)
             }.getOrElse {
                 throw CommitException("internal_error")
             }

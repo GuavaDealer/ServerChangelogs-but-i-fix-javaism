@@ -1,9 +1,14 @@
 package com.codingcat.changelogs.base.lang
 
+import com.charleskorn.kaml.Yaml
+import com.charleskorn.kaml.YamlMap
+import com.charleskorn.kaml.YamlScalar
 import com.codingcat.changelogs.base.ServerChangelogs
 import com.codingcat.changelogs.platformapi.meta.ChangelogsMeta
 import com.codingcat.changelogs.platformapi.meta.PlatformMeta
 import com.codingcat.changelogs.platformapi.player.PlatformPlayer
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.Component.text
@@ -18,14 +23,11 @@ import net.kyori.adventure.translation.TranslationStore
 import org.slf4j.kotlin.KLogger
 import org.slf4j.kotlin.info
 import org.slf4j.kotlin.warn
-import org.yaml.snakeyaml.Yaml
-import org.yaml.snakeyaml.error.YAMLException
 import java.io.IOException
 import java.nio.file.Path
 import java.util.*
 import kotlin.io.path.*
 
-@Suppress("UNCHECKED_CAST")
 class TranslationSource(
     private val sourceDirectory: Path,
     private val changelogsMeta: ChangelogsMeta,
@@ -39,6 +41,13 @@ class TranslationSource(
             .build()
     }
     private var translationStore: TranslationStore<*>? = null
+
+    /**
+     * Asynchronously reloads all translation files from disk on Dispatchers.IO.
+     */
+    suspend fun reloadAsync() = withContext(Dispatchers.IO) {
+        reload()
+    }
 
     fun reload() {
         logger.info { "Reloading translation store..." }
@@ -107,18 +116,18 @@ class TranslationSource(
             logger.warn { "Failed to find language file ${fileName}, skipping language!" }
             return null
         }
-        val langFile = Yaml()
         return try {
-            val data: Map<String, Any?> = path.inputStream().use { stream ->
-                langFile.load(stream)
-            }
+            val text = path.readText()
+            val rootNode = Yaml.default.parseToYamlNode(text)
             val translations = mutableMapOf<String, String>()
-            this.addRawTranslationsRecursive(translations, "${ServerChangelogs.NAMESPACE}.", data)
+            if (rootNode is YamlMap) {
+                this.addRawTranslationsRecursive(translations, "${ServerChangelogs.NAMESPACE}.", rootNode)
+            }
             translations
         } catch (e: IOException) {
             logger.warn(e) { "Failed to load language file ${fileName} due to I/O errors:" }
             null
-        } catch (e: YAMLException) {
+        } catch (e: Exception) {
             logger.warn(e) { "Invalid syntax in language file ${fileName}:" }
             null
         }
@@ -127,16 +136,19 @@ class TranslationSource(
     private fun addRawTranslationsRecursive(
         rawTranslations: MutableMap<String, String>,
         prefix: String,
-        data: Map<String, Any?>,
+        map: YamlMap,
     ) {
-        data.forEach { (k, v) ->
-            if (v is String) rawTranslations["${prefix}${k}"] = v
-            if (v is Map<*, *>) {
-                addRawTranslationsRecursive(
+        map.entries.forEach { (keyScalar, valueNode) ->
+            val key = keyScalar.content
+            when (valueNode) {
+                is YamlScalar -> rawTranslations["${prefix}${key}"] = valueNode.content
+                is YamlMap -> addRawTranslationsRecursive(
                     rawTranslations,
-                    "${prefix}${k}.",
-                    v as Map<String, Any?>,
+                    "${prefix}${key}.",
+                    valueNode,
                 )
+
+                else -> {}
             }
         }
     }

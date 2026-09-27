@@ -17,6 +17,8 @@ import com.codingcat.changelogs.platformapi.Entrypoint
 import com.codingcat.changelogs.platformapi.command.PlatformCommandManager
 import com.github.retrooper.packetevents.PacketEvents
 import com.github.retrooper.packetevents.PacketEventsAPI
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ComponentLike
@@ -25,7 +27,6 @@ import net.kyori.adventure.translation.GlobalTranslator
 import org.slf4j.kotlin.KLogger
 import org.slf4j.kotlin.info
 import org.slf4j.kotlin.warn
-import org.yaml.snakeyaml.error.YAMLException
 import java.io.IOException
 import java.nio.file.Path
 import java.util.*
@@ -79,20 +80,22 @@ object ServerChangelogs : Entrypoint {
     lateinit var logger: KLogger
         private set
 
-    override fun onStart() {
+    override suspend fun onStart() {
         componentLogger = platform.getComponentLogger()
         logger = KLogger(componentLogger)
 
         val translationPath: Path = platform.getDataPath().resolve("lang")
-        if (!translationPath.exists()) {
-            runCatching { translationPath.createDirectories() }
-                .onFailure { e -> logger.warn(e) { "Failed to create translation directory:" } }
-            logger.info { "Creating default translation files..." }
-            ResourceUtil.readResourcesAsString("lang").forEach { (fname, contents) ->
-                try {
-                    translationPath.resolve(fname).writeText(contents)
-                } catch (e: IOException) {
-                    logger.warn(e) { "Failed to create default translation file \"${fname}\":" }
+        withContext(Dispatchers.IO) {
+            if (!translationPath.exists()) {
+                runCatching { translationPath.createDirectories() }
+                    .onFailure { e -> logger.warn(e) { "Failed to create translation directory:" } }
+                logger.info { "Creating default translation files..." }
+                ResourceUtil.readResourcesAsString("lang").forEach { (fname, contents) ->
+                    try {
+                        translationPath.resolve(fname).writeText(contents)
+                    } catch (e: IOException) {
+                        logger.warn(e) { "Failed to create default translation file \"${fname}\":" }
+                    }
                 }
             }
         }
@@ -102,28 +105,30 @@ object ServerChangelogs : Entrypoint {
             platform.platformMeta,
             logger,
         )
-        this.translationSource.reload()
+        this.translationSource.reloadAsync()
 
         info("console.startup")
 
         val configPath: Path = platform.getDataPath().resolve("config.yml")
-        if (!configPath.exists()) {
-            logger.info { "Creating default configuration file..." }
-            val defaultConfig: String = ResourceUtil.readResourceAsString("defaults/config.yml")
-            try {
-                configPath.writeText(defaultConfig)
-            } catch (e: IOException) {
-                logger.warn(e) { "Failed to create default config file \"${configPath}\":" }
+        withContext(Dispatchers.IO) {
+            if (!configPath.exists()) {
+                logger.info { "Creating default configuration file..." }
+                val defaultConfig: String = ResourceUtil.readResourceAsString("defaults/config.yml")
+                try {
+                    configPath.writeText(defaultConfig)
+                } catch (e: IOException) {
+                    logger.warn(e) { "Failed to create default config file \"${configPath}\":" }
+                }
             }
         }
         this.config = PluginConfig(configPath)
-        this.config.tryReload()
+        this.config.tryReloadAsync()
         this.changelogStorage = this.config.createChangelogStorage()
         info(
             "console.startup_storage",
             Component.text(this.changelogStorage.displayName),
         )
-        this.changelogStorage.init()
+        this.changelogStorage.initAsync()
         PacketEventsFix.setManualWorkarounds(config.enabledManualWorkarounds, logger)
         this.dialogHolder.recreate()
         this.dialogSessionManager.registerEvents()
@@ -143,25 +148,25 @@ object ServerChangelogs : Entrypoint {
      *
      * @param force when true, forces dialog reloading even if active dialog editors reject dismissal.
      * @throws IOException if configuration or translation files fail to read.
-     * @throws YAMLException if configuration syntax validation fails.
+     * @throws IllegalArgumentException if configuration syntax validation fails.
      * @throws PluginDialog.DestroyRejectedException if an active dialog rejects reload and [force] is false.
      */
-    @Throws(IOException::class, YAMLException::class, PluginDialog.DestroyRejectedException::class)
-    fun reload(force: Boolean) {
+    @Throws(IOException::class, PluginDialog.DestroyRejectedException::class)
+    suspend fun reload(force: Boolean) {
         info("console.reload")
         if (!force) this.dialogHolder.ensureCanReload()
-        this.translationSource.reload()
-        this.config.reload()
+        this.translationSource.reloadAsync()
+        this.config.reloadAsync()
         this.config.validate()?.let { err ->
-            throw YAMLException(err)
+            throw IllegalArgumentException(err)
         }
-        this.changelogStorage.shutdown()
+        this.changelogStorage.shutdownAsync()
         this.changelogStorage = this.config.createChangelogStorage()
         info(
             "console.startup_storage",
             Component.text(this.changelogStorage.displayName),
         )
-        this.changelogStorage.init()
+        this.changelogStorage.initAsync()
         PacketEventsFix.setManualWorkarounds(config.enabledManualWorkarounds, logger)
         this.dialogHolder.recreate()
         val eventManager = platform.eventManager
@@ -169,11 +174,11 @@ object ServerChangelogs : Entrypoint {
         ChangelogJoinListener.registerEvents(eventManager)
     }
 
-    override fun onShutdown() {
+    override suspend fun onShutdown() {
         info("console.shutdown")
         this.dialogSessionManager.unregisterEvents()
         ChangelogJoinListener.unregisterEvents(platform.eventManager)
-        this.changelogStorage.shutdown()
+        this.changelogStorage.shutdownAsync()
     }
 
     /**

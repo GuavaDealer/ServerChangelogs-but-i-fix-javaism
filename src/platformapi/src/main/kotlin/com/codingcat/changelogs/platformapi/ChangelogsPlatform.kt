@@ -6,6 +6,7 @@ import com.codingcat.changelogs.platformapi.item.NativeItemManager
 import com.codingcat.changelogs.platformapi.meta.ChangelogsMeta
 import com.codingcat.changelogs.platformapi.meta.PlatformMeta
 import com.codingcat.changelogs.platformapi.player.PlatformPlayerManager
+import kotlinx.coroutines.CoroutineScope
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger
 import java.nio.file.Path
 
@@ -24,6 +25,11 @@ interface ChangelogsPlatform {
      * Defined as a method to match Paper's [org.bukkit.plugin.Plugin.getDataPath] and avoid JVM accidental override errors.
      */
     fun getDataPath(): Path
+
+    /**
+     * Coroutine scope bound to the platform plugin lifecycle.
+     */
+    val coroutineScope: CoroutineScope
 
     /**
      * Manager handling player lookups and adapting native player instances to platform representations.

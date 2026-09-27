@@ -12,6 +12,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.mojang.brigadier.builder.RequiredArgumentBuilder
 import com.mojang.brigadier.context.CommandContext
 import com.mojang.brigadier.tree.LiteralCommandNode
+import kotlinx.coroutines.launch
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 
@@ -128,6 +129,46 @@ abstract class AbstractCommand(
         return this.executes { ctx ->
             val source = plugin.platform.commandManager.adaptPlatformSource(ctx.source)
             block(source, ctx)
+            Command.SINGLE_SUCCESS
+        }
+    }
+
+    /**
+     * Executes the given suspending block asynchronously only if the invoking source represents a player.
+     *
+     * @param block The suspending block invoked with the executing player and command context.
+     * @return The updated argument builder.
+     */
+    protected fun <T : ArgumentBuilder<Any, T>> T.executesPlayerSuspend(
+        block: suspend (PlatformPlayer, CommandContext<Any>) -> Unit,
+    ): T {
+        return this.executes { ctx ->
+            val source = plugin.platform.commandManager.adaptPlatformSource(ctx.source)
+            val player = source.executingPlayer ?: run {
+                source.asAudience().sendMessage(TranslationSource.translatable("command.onlyplayer"))
+                return@executes Command.SINGLE_SUCCESS
+            }
+            plugin.platform.coroutineScope.launch {
+                block(player, ctx)
+            }
+            Command.SINGLE_SUCCESS
+        }
+    }
+
+    /**
+     * Executes the given suspending block asynchronously with the adapted [PlatformCommandSource] and command context.
+     *
+     * @param block The suspending block invoked with the executing command source and command context.
+     * @return The updated argument builder.
+     */
+    protected fun <T : ArgumentBuilder<Any, T>> T.executesSourceSuspend(
+        block: suspend (PlatformCommandSource, CommandContext<Any>) -> Unit,
+    ): T {
+        return this.executes { ctx ->
+            val source = plugin.platform.commandManager.adaptPlatformSource(ctx.source)
+            plugin.platform.coroutineScope.launch {
+                block(source, ctx)
+            }
             Command.SINGLE_SUCCESS
         }
     }

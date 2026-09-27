@@ -1,5 +1,6 @@
 package com.codingcat.changelogs.base.command
 
+import com.charleskorn.kaml.YamlException
 import com.codingcat.changelogs.base.ServerChangelogs
 import com.codingcat.changelogs.base.dialog.DialogPackets
 import com.codingcat.changelogs.base.dialog.PluginDialog
@@ -10,7 +11,6 @@ import com.codingcat.changelogs.platformapi.command.PlatformCommandSource
 import com.mojang.brigadier.Command
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import net.kyori.adventure.text.Component
-import org.yaml.snakeyaml.error.YAMLException
 import java.io.IOException
 
 /**
@@ -50,9 +50,13 @@ object ServerChangelogsCommand : AbstractCommand(
 
         builder.literal("reload") {
             requiresPermission("command.reload")
-            executesSource { source, _ -> executeReload(source, false) }
+            executesSourceSuspend { source, _ ->
+                executeReload(source, false)
+            }
             literal("--force") {
-                executesSource { source, _ -> executeReload(source, true) }
+                executesSourceSuspend { source, _ ->
+                    executeReload(source, true)
+                }
             }
         }
 
@@ -64,7 +68,7 @@ object ServerChangelogsCommand : AbstractCommand(
         }
     }
 
-    private fun executeReload(source: PlatformCommandSource, force: Boolean): Int {
+    private suspend fun executeReload(source: PlatformCommandSource, force: Boolean): Int {
         val audience = source.asAudience()
         val time = System.currentTimeMillis()
         var errorMsg: Component? = null
@@ -80,10 +84,15 @@ object ServerChangelogsCommand : AbstractCommand(
         } catch (e: IOException) {
             errorMsg = TranslationSource.translatable("command.reload.error.io")
             ServerChangelogs.error("command.reload.error.details", e)
-        } catch (e: YAMLException) {
+        } catch (e: YamlException) {
             errorMsg = TranslationSource.translatable(
                 "command.reload.error.invalid",
-                Component.text(e.message ?: "Unknown YAML error"),
+                Component.text(e.message),
+            )
+        } catch (e: IllegalArgumentException) {
+            errorMsg = TranslationSource.translatable(
+                "command.reload.error.invalid",
+                Component.text(e.message ?: "Invalid configuration"),
             )
         } catch (e: PluginDialog.DestroyRejectedException) {
             errorMsg = TranslationSource.translatable("command.reload.error.dialog_reject.${e.key}")

@@ -26,6 +26,7 @@ import com.github.retrooper.packetevents.protocol.item.type.ItemTypes
 import com.github.retrooper.packetevents.protocol.nbt.NBTByte
 import com.github.retrooper.packetevents.protocol.nbt.NBTCompound
 import com.github.retrooper.packetevents.protocol.nbt.NBTInt
+import kotlinx.coroutines.launch
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.format.TextDecoration
@@ -362,23 +363,25 @@ class ChangelogEditorDialog(
                     this.showRetry(source, "no_lines", session, sessionManager)
                     return
                 }
-                try {
-                    session.commit(this.storage)
-                } catch (e: EditorSession.CommitException) {
-                    this.showRetry(
+                ServerChangelogs.platform.coroutineScope.launch {
+                    try {
+                        session.commitAsync(this@ChangelogEditorDialog.storage)
+                    } catch (e: EditorSession.CommitException) {
+                        this@ChangelogEditorDialog.showRetry(
+                            source,
+                            "${session.id}.${e.translationKeyPart}",
+                            session,
+                            sessionManager,
+                        )
+                        return@launch
+                    }
+                    sessionManager.endSession(source)
+                    DialogPackets.showSimpleNotice(
                         source,
-                        "${session.id}.${e.translationKeyPart}",
-                        session,
-                        sessionManager,
+                        titleKey(session),
+                        "dialog.editor.${session.id}.success",
                     )
-                    return
                 }
-                sessionManager.endSession(source)
-                DialogPackets.showSimpleNotice(
-                    source,
-                    titleKey(session),
-                    "dialog.editor.${session.id}.success",
-                )
             }
         }
     }

@@ -9,14 +9,16 @@ import com.codingcat.changelogs.paper.meta.PaperPluginChangelogsMeta
 import com.codingcat.changelogs.paper.player.PaperPlayerManager
 import com.codingcat.changelogs.platformapi.ChangelogsPlatform
 import com.codingcat.changelogs.platformapi.Entrypoint
+import com.github.shynixn.mccoroutine.bukkit.SuspendingJavaPlugin
+import com.github.shynixn.mccoroutine.bukkit.scope
+import kotlinx.coroutines.CoroutineScope
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger
-import org.bukkit.plugin.java.JavaPlugin
 import java.nio.file.Path
 
 /**
  * Paper platform adapter and plugin implementation for ServerChangelogs.
  */
-class PaperChangelogsPlatform : JavaPlugin(), ChangelogsPlatform {
+class PaperChangelogsPlatform : SuspendingJavaPlugin(), ChangelogsPlatform {
     companion object {
         lateinit var instance: PaperChangelogsPlatform
             private set
@@ -38,6 +40,9 @@ class PaperChangelogsPlatform : JavaPlugin(), ChangelogsPlatform {
 
     override fun getDataPath(): Path = super.getDataPath()
 
+    override val coroutineScope: CoroutineScope
+        get() = this.scope
+
     override val playerManager: PaperPlayerManager = PaperPlayerManager
 
     override val eventManager: PaperEventManager = PaperEventManager
@@ -46,7 +51,7 @@ class PaperChangelogsPlatform : JavaPlugin(), ChangelogsPlatform {
 
     private var earlyInitSucceeded = false
 
-    override fun onEnable() {
+    override suspend fun onEnableAsync() {
         runCatching {
             Class.forName("com.github.retrooper.packetevents.PacketEvents")
         }.onFailure {
@@ -67,7 +72,7 @@ class PaperChangelogsPlatform : JavaPlugin(), ChangelogsPlatform {
         commandManager.registerEvents(lifecycleManager)
     }
 
-    override fun onDisable() {
+    override suspend fun onDisableAsync() {
         if (!earlyInitSucceeded) return
         try {
             runCatching {

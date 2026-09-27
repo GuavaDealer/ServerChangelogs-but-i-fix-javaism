@@ -44,9 +44,63 @@ interface ChangelogStorage : Iterable<ChangelogEntry> {
     fun getByUID(uid: Int): ChangelogEntry?
 
     /**
+     * Marks the entries with [uids] as acknowledged/read by [player] in batch.
+     */
+    fun markAllAsRead(uids: Collection<Int>, player: UUID)
+
+    /**
      * Marks the entry with [uid] as acknowledged/read by [player].
      */
-    fun markAsRead(uid: Int, player: UUID)
+    fun markAsRead(uid: Int, player: UUID) {
+        markAllAsRead(listOf(uid), player)
+    }
+
+    /**
+     * Asynchronously initializes storage structures, loading records into memory.
+     */
+    suspend fun initAsync() {
+        init()
+    }
+
+    /**
+     * Asynchronously flushes modified records and closes resources.
+     */
+    suspend fun shutdownAsync() {
+        shutdown()
+    }
+
+    /**
+     * Asynchronously persists a new changelog [entry].
+     */
+    suspend fun storeEntryAsync(entry: ChangelogEntry) {
+        storeEntry(entry)
+    }
+
+    /**
+     * Asynchronously updates an existing changelog [entry] matching its unique ID.
+     */
+    suspend fun updateEntryAsync(entry: ChangelogEntry) {
+        updateEntry(entry)
+    }
+
+    /**
+     * Asynchronously deletes the changelog entry identified by [uid]. Returns true if an entry was removed.
+     */
+    suspend fun removeEntryAsync(uid: Int): Boolean = removeEntry(uid)
+
+    /**
+     * Asynchronously marks the entry with [uid] as acknowledged/read by [player].
+     */
+    suspend fun markAsReadAsync(uid: Int, player: UUID) {
+        markAsRead(uid, player)
+    }
+
+    /**
+     * Asynchronously marks the entries with [uids] as acknowledged/read by [player] in batch.
+     */
+    suspend fun markAllAsReadAsync(uids: Collection<Int>, player: UUID) {
+        markAllAsRead(uids, player)
+    }
 
     /**
      * Computes the next available unique identifier for a new entry.

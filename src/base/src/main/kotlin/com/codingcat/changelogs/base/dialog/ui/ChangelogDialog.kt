@@ -1,5 +1,6 @@
 package com.codingcat.changelogs.base.dialog.ui
 
+import com.codingcat.changelogs.base.ServerChangelogs
 import com.codingcat.changelogs.base.compat.PacketEventsFix
 import com.codingcat.changelogs.base.data.ChangelogEntry
 import com.codingcat.changelogs.base.data.ChangelogStorage
@@ -23,6 +24,7 @@ import com.github.retrooper.packetevents.protocol.dialog.button.CommonButtonData
 import com.github.retrooper.packetevents.protocol.item.ItemStack
 import com.github.retrooper.packetevents.protocol.nbt.NBTCompound
 import com.github.retrooper.packetevents.protocol.nbt.NBTInt
+import kotlinx.coroutines.launch
 import net.kyori.adventure.text.Component
 import java.time.format.DateTimeFormatter
 
@@ -156,8 +158,11 @@ class ChangelogDialog(
             when (action) {
                 "confirm_read" -> {
                     val unreadEntries = this.storage.listEntries().filter { !it.hasRead(source) }
-                    unreadEntries.forEach { entry ->
-                        storage.markAsRead(entry.uid, source.uniqueId)
+                    if (unreadEntries.isNotEmpty()) {
+                        val uids = unreadEntries.map { it.uid }
+                        ServerChangelogs.platform.coroutineScope.launch {
+                            this@ChangelogDialog.storage.markAllAsReadAsync(uids, source.uniqueId)
+                        }
                     }
                     if (canManage) {
                         sessionManager.endSession(source)
@@ -207,7 +212,9 @@ class ChangelogDialog(
                 "confirm_delete" -> {
                     if (data == null || !canManage) return
                     val uid = data.getNumberTagValueOrThrow("uid").toInt()
-                    this.storage.removeEntry(uid)
+                    ServerChangelogs.platform.coroutineScope.launch {
+                        this@ChangelogDialog.storage.removeEntryAsync(uid)
+                    }
                     this.showTo(source, sessionManager, DialogPackets.PacketPhase.PLAY)
                 }
             }

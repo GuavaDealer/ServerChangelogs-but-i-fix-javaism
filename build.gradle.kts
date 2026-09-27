@@ -1,6 +1,7 @@
 plugins {
     id("org.jetbrains.kotlin.jvm") apply false
     id("com.gradleup.shadow") apply false
+    alias(libs.plugins.kotlin.serialization) apply false
 }
 
 group = project.findProperty("group")?.toString() ?: missingProperty("group")

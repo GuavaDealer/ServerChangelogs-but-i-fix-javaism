@@ -15,6 +15,8 @@ repositories {
 dependencies {
     implementation(projects.base)
     implementation(projects.platformapi)
+    implementation(libs.mccoroutine.velocity.api)
+    implementation(libs.mccoroutine.velocity.core)
     compileOnly(libs.packetevents.velocity)
     compileOnly(libs.velocity.api)
     testImplementation(libs.kotlin.test)

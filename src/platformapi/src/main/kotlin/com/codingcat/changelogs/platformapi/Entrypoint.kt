@@ -19,10 +19,10 @@ interface Entrypoint {
     /**
      * Initializes configurations, storage backends, and command/event registrations on startup.
      */
-    fun onStart()
+    suspend fun onStart()
 
     /**
      * Shuts down storage, flushes pending state, and releases registered resources.
      */
-    fun onShutdown()
+    suspend fun onShutdown()
 }

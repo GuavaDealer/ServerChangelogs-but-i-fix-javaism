@@ -11,6 +11,8 @@ import com.codingcat.changelogs.velocity.meta.VelocityPluginChangelogsMeta
 import com.codingcat.changelogs.velocity.player.VelocityPlayerManager
 import com.github.retrooper.packetevents.PacketEvents
 import com.github.retrooper.packetevents.PacketEventsAPI
+import com.github.shynixn.mccoroutine.velocity.SuspendingPluginContainer
+import com.github.shynixn.mccoroutine.velocity.scope
 import com.google.inject.Inject
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent
@@ -18,6 +20,7 @@ import com.velocitypowered.api.event.proxy.ProxyPreShutdownEvent
 import com.velocitypowered.api.plugin.PluginContainer
 import com.velocitypowered.api.plugin.annotation.DataDirectory
 import com.velocitypowered.api.proxy.ProxyServer
+import kotlinx.coroutines.CoroutineScope
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger
 import java.nio.file.Path
 
@@ -28,13 +31,21 @@ class VelocityChangelogsPlatform @Inject constructor(
     server: ProxyServer,
     private val componentLogger: ComponentLogger,
     @DataDirectory private val dataDirectory: Path,
-    pluginContainer: PluginContainer,
+    private val pluginContainer: PluginContainer,
+    suspendingPluginContainer: SuspendingPluginContainer,
 ) : ChangelogsPlatform {
+    init {
+        suspendingPluginContainer.initialize(this)
+    }
+
     private val entrypoint: Entrypoint = Entrypoints.create(this)
 
     override fun getComponentLogger(): ComponentLogger = componentLogger
 
     override fun getDataPath(): Path = dataDirectory
+
+    override val coroutineScope: CoroutineScope
+        get() = pluginContainer.scope
 
     override val platformMeta: VelocityPlatformMeta = VelocityPlatformMeta(server.version)
 
@@ -62,7 +73,7 @@ class VelocityChangelogsPlatform @Inject constructor(
     private var earlyInitSucceeded = false
 
     @Subscribe
-    fun onProxyInitialization(event: ProxyInitializeEvent) {
+    suspend fun onProxyInitialization(event: ProxyInitializeEvent) {
         runCatching {
             Class.forName("com.github.retrooper.packetevents.PacketEvents")
         }.onFailure {
@@ -83,7 +94,7 @@ class VelocityChangelogsPlatform @Inject constructor(
 
     @Subscribe
     @Suppress("UnstableApiUsage")
-    fun onProxyPreShutdown(event: ProxyPreShutdownEvent) {
+    suspend fun onProxyPreShutdown(event: ProxyPreShutdownEvent) {
         if (!earlyInitSucceeded) return
         try {
             runCatching {

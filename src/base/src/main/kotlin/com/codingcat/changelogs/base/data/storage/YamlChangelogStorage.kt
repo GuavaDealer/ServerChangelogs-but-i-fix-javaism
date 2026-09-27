@@ -1,10 +1,13 @@
 package com.codingcat.changelogs.base.data.storage
 
+import com.charleskorn.kaml.Yaml
+import com.charleskorn.kaml.YamlConfiguration
 import com.codingcat.changelogs.base.data.ChangelogEntry
 import com.codingcat.changelogs.base.data.ChangelogStorage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
-import org.yaml.snakeyaml.Yaml
-import org.yaml.snakeyaml.error.YAMLException
 import java.io.IOException
 import java.nio.file.AtomicMoveNotSupportedException
 import java.nio.file.Files
@@ -14,14 +17,34 @@ import java.time.Instant
 import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.io.path.exists
-import kotlin.io.path.inputStream
-import kotlin.io.path.outputStream
+import kotlin.io.path.readText
+import kotlin.io.path.writeText
 
-@Suppress("UNCHECKED_CAST")
+/**
+ * Storage representation of a serialized changelog entry in Kotaml YAML.
+ */
+@Serializable
+data class YamlStoredChangelogEntry(
+    val uid: Int,
+    val serializedLines: List<String> = emptyList(),
+    val recordedAt: String,
+    val author: String? = null,
+    val playersRead: List<String> = emptyList(),
+)
+
+/**
+ * Root YAML document structure holding changelog entries.
+ */
+@Serializable
+data class YamlChangelogDocument(
+    val entries: List<YamlStoredChangelogEntry> = emptyList(),
+)
+
 class YamlChangelogStorage(
     private val filePath: Path,
 ) : ChangelogStorage {
     private val lock = Any()
+    private val yaml: Yaml = Yaml(configuration = YamlConfiguration(strictMode = false))
     private var cache: MutableList<ChangelogEntry> = mutableListOf()
 
     override val displayName: String = "YAML File"
@@ -34,14 +57,16 @@ class YamlChangelogStorage(
                 return
             }
             try {
-                val config = Yaml()
-                val data = filePath.inputStream().use { stream ->
-                    config.load<Map<String, Any?>>(stream)
+                val text = filePath.readText()
+                val doc = if (text.isBlank()) {
+                    YamlChangelogDocument()
+                } else {
+                    yaml.decodeFromString(YamlChangelogDocument.serializer(), text)
                 }
-                this.cache = this.deserializeEntries(data ?: emptyMap())
-            } catch (e: IOException) {
-                throw RuntimeException("Failed to load changelog data from ${filePath}", e)
-            } catch (e: YAMLException) {
+                this.cache = doc.entries.mapIndexedTo(mutableListOf()) { index, entry ->
+                    deserializeEntry(index, entry)
+                }
+            } catch (e: Exception) {
                 throw RuntimeException("Failed to load changelog data from ${filePath}", e)
             }
         }
@@ -81,16 +106,12 @@ class YamlChangelogStorage(
     }
 
     private fun saveLocked() {
-        val config = Yaml()
-        val data = this.cache.map { serializeEntry(it) }
+        val storedEntries = this.cache.map { serializeEntry(it) }
+        val doc = YamlChangelogDocument(storedEntries)
+        val text = yaml.encodeToString(YamlChangelogDocument.serializer(), doc)
         val tempPath = filePath.resolveSibling("${filePath.fileName}.tmp")
         try {
-            tempPath.outputStream().use { os ->
-                config.dump(
-                    mapOf("entries" to data),
-                    os.writer().buffered(),
-                )
-            }
+            tempPath.writeText(text)
             try {
                 Files.move(
                     tempPath,
@@ -106,43 +127,61 @@ class YamlChangelogStorage(
         }
     }
 
-    private fun deserializeEntries(config: Map<String, Any?>): MutableList<ChangelogEntry> {
-        return runCatching {
-            val entries = config["entries"] as? List<Map<String, Any?>> ?: emptyList()
-            entries.mapIndexedTo(mutableListOf()) { index, entryMap ->
-                deserializeEntry(index, entryMap)
-            }
-        }
-            .getOrElse { e ->
-                throw RuntimeException("Failed to deserialize changelog entries", e)
-            }
-    }
-
-    private fun deserializeEntry(defaultIndex: Int, data: Map<String, Any?>): ChangelogEntry {
-        val uid = (data["uid"] as? Number)?.toInt() ?: defaultIndex
-        val linesRaw = data["serializedLines"] as? List<String> ?: emptyList()
-        val lines = linesRaw.map { GsonComponentSerializer.gson().deserialize(it) }
-        val recordedAtRaw = data["recordedAt"] as? String
-            ?: throw IllegalStateException("Missing recordedAt for changelog entry ${uid}")
-        val recordedAt = DateTimeFormatter.ISO_INSTANT.parse(recordedAtRaw, Instant::from)
-        val author = (data["author"] as? String)?.let { GsonComponentSerializer.gson().deserialize(it) }
-        val playersReadRaw = data["playersRead"] as? List<String> ?: emptyList()
-        val playersRead = playersReadRaw.mapTo(mutableSetOf()) { UUID.fromString(it) }
+    private fun deserializeEntry(defaultIndex: Int, entry: YamlStoredChangelogEntry): ChangelogEntry {
+        val uid = entry.uid
+        val lines = entry.serializedLines.map { GsonComponentSerializer.gson().deserialize(it) }
+        val recordedAt = DateTimeFormatter.ISO_INSTANT.parse(entry.recordedAt, Instant::from)
+        val author = entry.author?.let { GsonComponentSerializer.gson().deserialize(it) }
+        val playersRead = entry.playersRead.mapTo(mutableSetOf()) { UUID.fromString(it) }
         return ChangelogEntry(uid, lines, recordedAt, author, playersRead)
     }
 
-    private fun serializeEntry(entry: ChangelogEntry): Map<String, Any?> {
+    private fun serializeEntry(entry: ChangelogEntry): YamlStoredChangelogEntry {
         val serializedLines = entry.lines.map { GsonComponentSerializer.gson().serialize(it) }
         val recordedAtRaw = DateTimeFormatter.ISO_INSTANT.format(entry.recordedAt)
         val serializedAuthor = entry.author?.let { GsonComponentSerializer.gson().serialize(it) }
         val rawPlayersRead = entry.playersRead.map { it.toString() }
-        return mapOf(
-            "uid" to entry.uid,
-            "serializedLines" to serializedLines,
-            "recordedAt" to recordedAtRaw,
-            "author" to serializedAuthor,
-            "playersRead" to rawPlayersRead,
+        return YamlStoredChangelogEntry(
+            uid = entry.uid,
+            serializedLines = serializedLines,
+            recordedAt = recordedAtRaw,
+            author = serializedAuthor,
+            playersRead = rawPlayersRead,
         )
+    }
+
+    suspend fun saveAsync() = withContext(Dispatchers.IO) {
+        synchronized(lock) {
+            saveLocked()
+        }
+    }
+
+    override suspend fun initAsync() = withContext(Dispatchers.IO) {
+        init()
+    }
+
+    override suspend fun shutdownAsync() = withContext(Dispatchers.IO) {
+        shutdown()
+    }
+
+    override suspend fun storeEntryAsync(entry: ChangelogEntry) = withContext(Dispatchers.IO) {
+        storeEntry(entry)
+    }
+
+    override suspend fun updateEntryAsync(entry: ChangelogEntry) = withContext(Dispatchers.IO) {
+        updateEntry(entry)
+    }
+
+    override suspend fun removeEntryAsync(uid: Int): Boolean = withContext(Dispatchers.IO) {
+        removeEntry(uid)
+    }
+
+    override suspend fun markAsReadAsync(uid: Int, player: UUID) = withContext(Dispatchers.IO) {
+        markAsRead(uid, player)
+    }
+
+    override suspend fun markAllAsReadAsync(uids: Collection<Int>, player: UUID) = withContext(Dispatchers.IO) {
+        markAllAsRead(uids, player)
     }
 
     override fun listEntries(): List<ChangelogEntry> {
@@ -157,13 +196,23 @@ class YamlChangelogStorage(
         }
     }
 
-    override fun markAsRead(uid: Int, player: UUID) {
+    override fun markAllAsRead(uids: Collection<Int>, player: UUID) {
         synchronized(lock) {
-            val entry = this.cache.find { it.uid == uid } ?: return
-            if (entry.playersRead.add(player)) {
+            var changed = false
+            for (uid in uids) {
+                val entry = this.cache.find { it.uid == uid } ?: continue
+                if (entry.playersRead.add(player)) {
+                    changed = true
+                }
+            }
+            if (changed) {
                 this.saveLocked()
             }
         }
+    }
+
+    override fun markAsRead(uid: Int, player: UUID) {
+        markAllAsRead(listOf(uid), player)
     }
 
     override fun nextUID(): Int {

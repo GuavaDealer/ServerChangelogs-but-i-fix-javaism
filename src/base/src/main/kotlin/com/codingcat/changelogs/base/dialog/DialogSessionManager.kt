@@ -18,22 +18,24 @@ import com.github.retrooper.packetevents.util.adventure.NbtTagHolder
 import com.github.retrooper.packetevents.wrapper.common.client.WrapperCommonClientCustomClickAction
 import com.github.retrooper.packetevents.wrapper.configuration.client.WrapperConfigClientCustomClickAction
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientCustomClickAction
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.nbt.api.BinaryTagHolder
 import net.kyori.adventure.text.event.ClickEvent
 import java.util.*
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
- * PacketEvents listener coordinating dialog click actions, session state, and player freeze futures.
+ * PacketEvents listener coordinating dialog click actions, session state, and player freeze deferreds.
  */
 object DialogSessionManager : PacketListener {
     private val staticActions: MutableSet<Key> = ConcurrentHashMap.newKeySet()
     private val activeSessions: MutableMap<UUID, String> = ConcurrentHashMap()
     private val sessionData: MutableMap<UUID, Any> = ConcurrentHashMap()
-    private val frozenViewers: MutableMap<UUID, CompletableFuture<Void?>> = ConcurrentHashMap()
+    private val frozenViewers: MutableMap<UUID, CompletableDeferred<Unit>> = ConcurrentHashMap()
     private var selfListener: PacketListenerCommon? = null
 
     fun handleCustomClick(packetWrapper: WrapperCommonClientCustomClickAction<*>, player: PlatformPlayer) {
@@ -184,25 +186,41 @@ object DialogSessionManager : PacketListener {
     }
 
     fun isFrozen(player: PlatformPlayer): Boolean {
-        val future = this.frozenViewers[player.uniqueId]
-        return future != null && !future.isDone
+        val deferred = this.frozenViewers[player.uniqueId]
+        return deferred != null && !deferred.isCompleted
     }
 
     fun unfreeze(player: PlatformPlayer) {
-        val future = this.frozenViewers.remove(player.uniqueId)
-        future?.complete(null)
+        val deferred = this.frozenViewers.remove(player.uniqueId)
+        deferred?.complete(Unit)
     }
 
     fun freeze(player: PlatformPlayer) {
-        this.frozenViewers.computeIfAbsent(player.uniqueId) { CompletableFuture() }
+        this.frozenViewers.computeIfAbsent(player.uniqueId) { CompletableDeferred() }
+    }
+
+    suspend fun awaitUnfreeze(player: PlatformPlayer, timeoutSeconds: Long = 45) {
+        val deferred = this.frozenViewers[player.uniqueId] ?: return
+        runCatching {
+            withTimeout(timeoutSeconds * 1000) {
+                deferred.await()
+            }
+        }.onFailure {
+            // Deferred timed out, was cancelled, or completed exceptionally
+        }
+        this.frozenViewers.remove(player.uniqueId)
     }
 
     fun waitForUnfreeze(player: PlatformPlayer, timeoutSeconds: Long = 45) {
-        val future = this.frozenViewers[player.uniqueId] ?: return
-        runCatching {
-            future.get(timeoutSeconds, TimeUnit.SECONDS)
-        }.onFailure {
-            // Future timed out, was cancelled, or completed exceptionally
+        val deferred = this.frozenViewers[player.uniqueId] ?: return
+        runBlocking {
+            runCatching {
+                withTimeout((timeoutSeconds * 1000).milliseconds) {
+                    deferred.await()
+                }
+            }.onFailure {
+                // Deferred timed out, was cancelled, or completed exceptionally
+            }
         }
         this.frozenViewers.remove(player.uniqueId)
     }

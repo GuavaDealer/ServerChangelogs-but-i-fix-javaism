@@ -1,11 +1,13 @@
 plugins {
     `java-library`
+    alias(libs.plugins.kotlin.serialization)
 }
 
 dependencies {
     implementation(projects.platformapi)
     api(libs.slf4k)
-    compileOnly(libs.snakeyaml)
+    api(libs.kotaml)
+    api(libs.kotlinx.serialization.core)
     compileOnly(libs.bundles.adventure)
     compileOnly(libs.mojang.brigadier)
     compileOnly(libs.slf4j.api)

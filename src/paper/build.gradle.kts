@@ -13,6 +13,8 @@ repositories {
 dependencies {
     implementation(projects.base)
     implementation(projects.platformapi)
+    implementation(libs.mccoroutine.bukkit.api)
+    implementation(libs.mccoroutine.bukkit.core)
     compileOnly(libs.packetevents.paper)
     compileOnly(libs.paper.api)
     testImplementation(libs.kotlin.test)

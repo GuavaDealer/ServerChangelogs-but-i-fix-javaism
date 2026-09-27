@@ -1,28 +1,55 @@
 package com.codingcat.changelogs.base.config
 
+import com.charleskorn.kaml.Yaml
+import com.charleskorn.kaml.YamlConfiguration
 import com.codingcat.changelogs.base.ServerChangelogs
 import com.codingcat.changelogs.base.compat.PacketEventsFix
 import com.codingcat.changelogs.base.data.ChangelogStorage
 import com.codingcat.changelogs.base.dialog.DialogPackets
 import com.github.retrooper.packetevents.protocol.item.ItemStack
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import net.kyori.adventure.key.Key
-import org.yaml.snakeyaml.Yaml
-import org.yaml.snakeyaml.error.YAMLException
-import java.io.IOException
 import java.nio.file.Path
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import kotlin.io.path.inputStream
+import kotlin.io.path.readText
+
+/**
+ * Serialized configuration model for plugin settings.
+ */
+@Serializable
+data class PluginConfigData(
+    @SerialName("changelog_storage")
+    val changelogStorage: String = "yaml",
+    @SerialName("date_format")
+    val dateFormat: String = "MM/dd/yyyy",
+    @SerialName("date_timezone")
+    val dateTimezone: String = "UTC",
+    @SerialName("register_dedicated_command")
+    val registerDedicatedCommand: Boolean = true,
+    @SerialName("use_native_fallback_permissions")
+    val useNativeFallbackPermissions: Boolean = false,
+    @SerialName("dialog_phase")
+    val dialogPhase: String = "CONFIGURATION",
+    @SerialName("dialog_header")
+    val dialogHeader: Boolean = true,
+    @SerialName("dialog_header_item")
+    val dialogHeaderItem: String? = "minecraft:written_book",
+    @SerialName("enable_manual_workarounds")
+    val enableManualWorkarounds: List<String> = emptyList(),
+)
 
 /**
  * YAML configuration parser and validator managing plugin behavior, item stacks, and storage options.
  */
-@Suppress("UNCHECKED_CAST")
 class PluginConfig(
     private val path: Path,
 ) {
-    private val yaml: Yaml = Yaml()
-    private var data: Map<String, Any?> = emptyMap()
+    private val yaml: Yaml = Yaml(configuration = YamlConfiguration(strictMode = false))
+    private var data: PluginConfigData = PluginConfigData()
 
     /**
      * Attempts to reload and validate the configuration file, throwing [RuntimeException] on failure.
@@ -34,15 +61,31 @@ class PluginConfig(
             throw RuntimeException("Failed to reload configuration", e)
         }
         this.validate()?.let { err ->
-            throw RuntimeException("Configuration invalid: $err")
+            throw RuntimeException("Configuration invalid: ${err}")
         }
     }
 
-    @Throws(IOException::class, YAMLException::class)
+    /**
+     * Asynchronously attempts to reload and validate configuration on Dispatchers.IO.
+     */
+    suspend fun tryReloadAsync() = withContext(Dispatchers.IO) {
+        tryReload()
+    }
+
+    /**
+     * Asynchronously reloads configuration from disk on Dispatchers.IO.
+     */
+    suspend fun reloadAsync() = withContext(Dispatchers.IO) {
+        reload()
+    }
+
     fun reload() {
-        this.data = this.path.inputStream().use { stream ->
-            this.yaml.load(stream)
-        } ?: emptyMap()
+        val text = this.path.readText()
+        this.data = if (text.isBlank()) {
+            PluginConfigData()
+        } else {
+            this.yaml.decodeFromString(PluginConfigData.serializer(), text)
+        }
     }
 
     fun validate(): String? = runCatching {
@@ -56,20 +99,20 @@ class PluginConfig(
 
     @Throws(RuntimeException::class)
     fun createChangelogStorage(): ChangelogStorage {
-        return ChangelogStorage.create(getString("changelog_storage", "yaml"))
+        return ChangelogStorage.create(data.changelogStorage)
     }
 
     val dateFormatter: DateTimeFormatter
-        get() = DateTimeFormatter.ofPattern(getString("date_format", "----"))
-            .withZone(ZoneId.of(getString("date_timezone", "UTC")))
+        get() = DateTimeFormatter.ofPattern(data.dateFormat)
+            .withZone(ZoneId.of(data.dateTimezone))
 
     fun registerDedicatedCommand(): Boolean {
-        return getBoolean("register_dedicated_command", true)
+        return data.registerDedicatedCommand
     }
 
     val dialogPacketPhase: DialogPackets.PacketPhase
         get() {
-            val rawPhase = getString("dialog_phase", DialogPackets.PacketPhase.PLAY.name)
+            val rawPhase = data.dialogPhase
             return runCatching {
                 DialogPackets.PacketPhase.valueOf(rawPhase.uppercase())
             }.getOrElse {
@@ -79,45 +122,25 @@ class PluginConfig(
 
     val enabledManualWorkarounds: Set<PacketEventsFix.Workaround>
         get() {
-            val rawWorkarounds = getList<String>("enable_manual_workarounds")
-            return rawWorkarounds.mapNotNull { workaround ->
-                workaround?.let { it ->
-                    runCatching {
-                        PacketEventsFix.Workaround.valueOf(it.uppercase())
-                    }.getOrElse {
-                        throw IllegalArgumentException("Invalid manual workaround ID \"${it}\"")
-                    }
+            return data.enableManualWorkarounds.map { workaround ->
+                runCatching {
+                    PacketEventsFix.Workaround.valueOf(workaround.uppercase())
+                }.getOrElse {
+                    throw IllegalArgumentException("Invalid manual workaround ID \"${workaround}\"")
                 }
             }.toSet()
         }
 
     fun showChangelogHeader(): Boolean {
-        return getBoolean("dialog_header", true)
+        return data.dialogHeader
     }
 
     fun useNativeFallbackPermissions(): Boolean {
-        return getBoolean("use_native_fallback_permissions", false)
+        return data.useNativeFallbackPermissions
     }
 
     fun createChangelogHeaderStack(): ItemStack? =
-        getStringOrNull("dialog_header_item")?.let(::createStack)
-
-    private fun getString(key: String, defaultValue: String): String {
-        return (this.data[key] as? String) ?: defaultValue
-    }
-
-    private fun getStringOrNull(key: String): String? {
-        return this.data[key] as? String
-    }
-
-    private fun getBoolean(key: String, defaultValue: Boolean): Boolean {
-        return (this.data[key] as? Boolean) ?: defaultValue
-    }
-
-    private inline fun <reified T> getList(key: String): List<T?> {
-        val list = this.data[key] as? List<*> ?: return emptyList()
-        return list.map { it as? T }
-    }
+        data.dialogHeaderItem?.let(::createStack)
 
     private fun createStack(input: String): ItemStack {
         val idPart = if (input.contains("[")) input.substring(0, input.indexOf('[')) else input
