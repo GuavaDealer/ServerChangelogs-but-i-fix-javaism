@@ -4,8 +4,8 @@ plugins {
     id("java")
     alias(libs.plugins.lombok)
     alias(libs.plugins.shadow)
-    id("xyz.jpenilla.run-velocity") version "3.0.2"
-    id("xyz.jpenilla.resource-factory-velocity-convention") version "1.3.1"
+    alias(libs.plugins.run.velocity)
+    alias(libs.plugins.resource.factory.velocity.convention)
 }
 
 repositories {
@@ -13,11 +13,12 @@ repositories {
     maven("https://repo.papermc.io/repository/maven-public/")
 }
 
+@Suppress("VulnerableLibrariesLocal")
 dependencies {
     implementation(project(":base"))
     implementation(project(":platformapi"))
     compileOnly(libs.packetevents.velocity)
-    compileOnly("com.velocitypowered:velocity-api:3.5.0-SNAPSHOT")
+    compileOnly(libs.velocity.api)
 }
 
 velocityPluginJson {
@@ -36,9 +37,6 @@ java {
 
 tasks {
     runVelocity {
-        // Configure the Velocity version for our task.
-        // This is the only required configuration besides applying the plugin.
-        // Your plugin's jar (or shadowJar if present) will be used automatically.
-        velocityVersion("3.5.0-SNAPSHOT")
+        velocityVersion(libs.versions.velocity.api.get())
     }
 }
