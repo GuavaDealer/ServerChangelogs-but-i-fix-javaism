@@ -47,13 +47,9 @@ public class ChangelogJoinListener {
 
     public boolean checkShowDialog(@NotNull IPlayer player, boolean freeze) {
         ChangelogStorage storage = this.storageSupplier.get();
-        Instant firstSeenAt = storage.getFirstSeenAt(player.getUniqueId());
-        if (firstSeenAt == null) {
-            storage.recordFirstSeen(player.getUniqueId(), Instant.now());
-            return false;
-        }
+        Instant firstSeenAt = storage.recordFirstSeen(player.getUniqueId(), Instant.now());
         boolean unreadChangelogs = storage.listEntries().stream()
-                .anyMatch(e -> storage.isUnreadFor(e, player.getUniqueId()));
+                .anyMatch(e -> !e.hasRead(player) && e.recordedAt().isAfter(firstSeenAt));
         if (!unreadChangelogs) return false;
         ChangelogDialog dialog = this.dialogHolder.getFromType(ChangelogDialog.class);
         if (freeze) this.sessionManager.freeze(player);

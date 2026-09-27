@@ -184,10 +184,10 @@ public class YamlChangelogStorage implements ChangelogStorage {
     }
 
     @Override
-    public boolean recordFirstSeen(@NotNull UUID player, @NotNull Instant seenAt) {
-        boolean recorded = this.playerFirstSeen.putIfAbsent(player, seenAt) != null;
-        if (recorded) this.save();
-        return recorded;
+    public @NotNull Instant recordFirstSeen(@NotNull UUID player, @NotNull Instant seenAt) {
+        Instant previous = this.playerFirstSeen.putIfAbsent(player, seenAt);
+        if (previous != null) this.save();
+        return Objects.requireNonNullElse(previous, seenAt);
     }
 
     @Override

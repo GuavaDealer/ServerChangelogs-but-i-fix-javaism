@@ -28,7 +28,7 @@ public interface ChangelogStorage {
 
     @Nullable Instant getFirstSeenAt(@NotNull UUID player);
 
-    boolean recordFirstSeen(@NotNull UUID player, @NotNull Instant seenAt);
+    @NotNull Instant recordFirstSeen(@NotNull UUID player, @NotNull Instant seenAt);
 
     default boolean isUnreadFor(@NotNull ChangelogEntry entry, @NotNull UUID player) {
         Instant firstSeenAt = this.getFirstSeenAt(player);
