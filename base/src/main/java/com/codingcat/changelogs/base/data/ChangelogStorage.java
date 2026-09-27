@@ -5,6 +5,7 @@ import com.codingcat.changelogs.base.data.storage.YamlChangelogStorage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,6 +25,17 @@ public interface ChangelogStorage {
     @Nullable ChangelogEntry getByUID(int uid);
 
     void markAsRead(int uid, @NotNull UUID player);
+
+    @Nullable Instant getFirstSeenAt(@NotNull UUID player);
+
+    @NotNull Instant recordFirstSeen(@NotNull UUID player, @NotNull Instant seenAt);
+
+    default boolean isUnreadFor(@NotNull ChangelogEntry entry, @NotNull UUID player) {
+        Instant firstSeenAt = this.getFirstSeenAt(player);
+        return firstSeenAt != null
+                && entry.recordedAt().isAfter(firstSeenAt)
+                && !entry.playersRead().contains(player);
+    }
 
     int nextUID();
 

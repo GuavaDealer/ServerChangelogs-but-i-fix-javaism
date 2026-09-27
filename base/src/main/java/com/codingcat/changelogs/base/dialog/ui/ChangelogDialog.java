@@ -85,7 +85,7 @@ public class ChangelogDialog implements IDialog {
 
     private @NotNull Component formatEntry(@NotNull ChangelogEntry entry, @NotNull IPlayer player, @NotNull DialogSessionManager sessionManager, boolean canManage) {
         Component linesComponent = createLinesComponent(player, null, entry.lines());
-        Component entryComponent = translatableManual(player, "dialog.changelog.entry" + (!entry.hasRead(player) ? "_unread" : ""),
+        Component entryComponent = translatableManual(player, "dialog.changelog.entry" + (this.storage.isUnreadFor(entry, player.getUniqueId()) ? "_unread" : ""),
                 text(dateFormatter.format(entry.recordedAt())), linesComponent,
                 Objects.requireNonNullElseGet(entry.author(), () -> translatableManual(player, "dialog.changelog.unspecified_author"))
         );
@@ -123,7 +123,7 @@ public class ChangelogDialog implements IDialog {
                 case "confirm_read" -> {
                     List<Integer> uids = this.storage.listEntries()
                             .stream()
-                            .filter(e -> !e.hasRead(source))
+                            .filter(e -> this.storage.isUnreadFor(e, source.getUniqueId()))
                             .map(ChangelogEntry::uid)
                             .toList();
                     uids.forEach(uid -> storage.markAsRead(uid, source.getUniqueId()));
