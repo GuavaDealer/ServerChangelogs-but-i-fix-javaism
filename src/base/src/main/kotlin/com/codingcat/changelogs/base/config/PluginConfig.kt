@@ -16,6 +16,24 @@ import java.nio.file.Path
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import kotlin.io.path.readText
+import kotlin.io.path.writeText
+
+/**
+ * Configuration settings for relational database backends via JetBrains Exposed.
+ */
+@Serializable
+data class DatabaseConfig(
+    val type: String = "sqlite",
+    val host: String = "localhost",
+    val port: Int = 3306,
+    val database: String = "server_changelogs",
+    val username: String = "root",
+    val password: String = "",
+    @SerialName("jdbc_url")
+    val jdbcUrl: String? = null,
+    @SerialName("auto_migrate_yaml")
+    val autoMigrateYaml: Boolean = true,
+)
 
 /**
  * Serialized configuration model for plugin settings.
@@ -24,6 +42,7 @@ import kotlin.io.path.readText
 data class PluginConfigData(
     @SerialName("changelog_storage")
     val changelogStorage: String = "yaml",
+    val database: DatabaseConfig = DatabaseConfig(),
     @SerialName("date_format")
     val dateFormat: String = "MM/dd/yyyy",
     @SerialName("date_timezone")
@@ -88,6 +107,21 @@ class PluginConfig(
         }
     }
 
+    /**
+     * Serializes and writes configuration state to disk using Kotaml.
+     */
+    fun save() {
+        val text = this.yaml.encodeToString(PluginConfigData.serializer(), this.data)
+        this.path.writeText(text)
+    }
+
+    /**
+     * Asynchronously serializes and writes configuration to disk using Kotaml on Dispatchers.IO.
+     */
+    suspend fun saveAsync() = withContext(Dispatchers.IO) {
+        save()
+    }
+
     fun validate(): String? = runCatching {
         this.dialogPacketPhase
         createChangelogStorage()
@@ -98,9 +132,23 @@ class PluginConfig(
     }.getOrElse { it.message }
 
     @Throws(RuntimeException::class)
-    fun createChangelogStorage(): ChangelogStorage {
-        return ChangelogStorage.create(data.changelogStorage)
+    fun createChangelogStorage(dataPath: Path? = null): ChangelogStorage {
+        val root = dataPath ?: runCatching { ServerChangelogs.platform.getDataPath() }
+            .getOrElse { this.path.parent ?: Path.of(".") }
+        return ChangelogStorage.create(this, root)
     }
+
+    /**
+     * Active database configuration settings.
+     */
+    val databaseConfig: DatabaseConfig
+        get() = data.database
+
+    /**
+     * Configured changelog storage identifier (e.g., "yaml", "sqlite", "mysql").
+     */
+    val changelogStorageType: String
+        get() = data.changelogStorage
 
     val dateFormatter: DateTimeFormatter
         get() = DateTimeFormatter.ofPattern(data.dateFormat)

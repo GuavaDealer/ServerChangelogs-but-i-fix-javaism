@@ -1,6 +1,8 @@
 package com.codingcat.changelogs.base.data
 
 import com.codingcat.changelogs.base.ServerChangelogs
+import com.codingcat.changelogs.base.config.PluginConfig
+import com.codingcat.changelogs.base.data.storage.ExposedChangelogStorage
 import com.codingcat.changelogs.base.data.storage.YamlChangelogStorage
 import java.util.*
 
@@ -132,6 +134,39 @@ interface ChangelogStorage : Iterable<ChangelogEntry> {
     }
 
     companion object {
+        /**
+         * Resolves and instantiates a [ChangelogStorage] backend for the requested [config].
+         *
+         * @throws IllegalArgumentException if the storage type identifier is unsupported.
+         */
+        @Throws(IllegalArgumentException::class)
+        fun create(
+            config: PluginConfig,
+            dataPath: java.nio.file.Path = runCatching { ServerChangelogs.platform.getDataPath() }
+                .getOrElse { java.nio.file.Path.of(".") },
+        ): ChangelogStorage {
+            return when (val identifier = config.changelogStorageType.lowercase()) {
+                "yaml" -> YamlChangelogStorage(dataPath.resolve("_data.yml"))
+                "sqlite", "h2", "mysql", "mariadb", "postgresql", "postgres", "exposed", "jdbc" -> {
+                    val logger = runCatching { ServerChangelogs.logger }
+                        .getOrElse { org.slf4j.kotlin.KLogger(org.slf4j.LoggerFactory.getLogger("ChangelogsStorage")) }
+                    ExposedChangelogStorage(
+                        dataPath = dataPath,
+                        config = config.databaseConfig.copy(
+                            type = if (identifier in setOf("exposed", "jdbc")) {
+                                config.databaseConfig.type
+                            } else {
+                                identifier
+                            },
+                        ),
+                        logger = logger,
+                    )
+                }
+
+                else -> throw IllegalArgumentException("Unknown changelog storage type \"${identifier}\"")
+            }
+        }
+
         /**
          * Resolves and instantiates a [ChangelogStorage] backend for the requested [identifier].
          *

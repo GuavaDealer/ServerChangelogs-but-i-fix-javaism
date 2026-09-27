@@ -6,9 +6,30 @@
 #
 
 # The changelog storage is used to store all server changelogs.
-# Currently, the only option available is "yaml", which stores changelogs
-# in a human-readable YAML configuration file.
+# Available options:
+# - "yaml": Stores changelogs in a plain YAML configuration file (_data.yml).
+# - "sqlite": Stores changelogs in a local SQLite database file via JetBrains Exposed.
+# - "mysql", "mariadb", "postgresql", "h2": Connects to a relational database via JetBrains Exposed.
+# - "exposed" / "jdbc": Generic Exposed database storage configured below.
 changelog_storage: yaml
+
+# Database connection settings when using JetBrains Exposed (sqlite, mysql, mariadb, postgresql, h2, exposed).
+database:
+  # Database engine: sqlite, mysql, mariadb, postgresql, h2
+  type: sqlite
+  # Hostname for remote databases
+  host: "localhost"
+  # Port for remote databases (3306 for MySQL/MariaDB, 5432 for PostgreSQL)
+  port: 3306
+  # Database or schema name
+  database: "server_changelogs"
+  # Authentication credentials
+  username: "root"
+  password: ""
+  # Optional explicit JDBC connection URL (overrides host, port, database if set)
+  # jdbc_url: "jdbc:sqlite:changelogs.db"
+  # Automatically migrate existing entries from _data.yml into database on startup if database is empty:
+  auto_migrate_yaml: true
 
 # The format used to display the date/time of a given changelog.
 # yyyy = year (with 4 digits)

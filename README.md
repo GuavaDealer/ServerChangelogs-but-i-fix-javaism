@@ -96,7 +96,7 @@ ServerChangelogs was originally made for a **smaller minecraft server** I'm a pa
 
 The roadmap below contains some of the features that I'm **planning to add** in the future:
 
-- [ ] **JDBC (relational) database support**:
+- [x] **JDBC (relational) database support**:
   Currently, the plugin stores all changelog data (including who has already seen what changelogs) in a plain YAML file.
   The reason for this mostly comes down to the stuff above (we wanted a solution fast), so we didn't prioritize storage.
   This does start to cause problems over time, since the amount of data that has to be (de-)serialized for each startup/write operation increases by a lot!

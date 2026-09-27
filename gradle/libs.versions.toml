@@ -15,6 +15,8 @@ kotaml = "0.111.0"
 mccoroutine = "2.23.0"
 coroutines = "1.11.0"
 kotlinx-serialization = "1.11.0"
+exposed = "1.5.0"
+sqlite-jdbc = "3.53.4.0"
 
 [libraries]
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
@@ -40,6 +42,11 @@ packetevents-paper = { module = "com.github.retrooper:packetevents-spigot", vers
 packetevents-velocity = { module = "com.github.retrooper:packetevents-velocity", version.ref = "packetevents" }
 paper-api = { module = "io.papermc.paper:paper-api", version.ref = "paper-api" }
 velocity-api = { module = "com.velocitypowered:velocity-api", version.ref = "velocity-api" }
+exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }
+exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
+exposed-dao = { module = "org.jetbrains.exposed:exposed-dao", version.ref = "exposed" }
+exposed-java-time = { module = "org.jetbrains.exposed:exposed-java-time", version.ref = "exposed" }
+sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqlite-jdbc" }
 
 [bundles]
 adventure = [
@@ -47,6 +54,12 @@ adventure = [
     "adventure-slf4j",
     "adventure-minimessage",
     "adventure-gson",
+]
+exposed = [
+    "exposed-core",
+    "exposed-jdbc",
+    "exposed-dao",
+    "exposed-java-time",
 ]
 
 [plugins]

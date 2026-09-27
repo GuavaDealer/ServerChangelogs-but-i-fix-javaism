@@ -41,11 +41,7 @@ subprojects {
         archiveFileName = "${rootProject.name}-${project.name}-${project.version}.jar"
         destinationDirectory.set(rootProject.layout.projectDirectory.dir("final"))
         mustRunAfter(cleanFinalArtifacts)
-        dependencies {
-            exclude(dependency("org.slf4j:slf4j-api"))
-        }
-        relocate("kotlinx.collections.immutable", "com.codingcat.changelogs.libs.immutable")
-        relocate("ca.solostudios.slf4k", "com.codingcat.changelogs.libs.slf4k")
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
 
     repositories {
@@ -59,6 +55,11 @@ subprojects {
         pluginManager.withPlugin("com.gradleup.shadow") {
             dependsOn(tasks.named("shadowJar"))
         }
+    }
+
+    tasks.withType<Test>().configureEach {
+        outputs.upToDateWhen { false }
+        useJUnitPlatform()
     }
 }
 
