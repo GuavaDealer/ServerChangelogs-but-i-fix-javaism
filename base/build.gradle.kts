@@ -15,16 +15,8 @@ dependencies {
     compileOnly(libs.adventure.minimessage)
     compileOnly(libs.adventure.gson)
     compileOnly(libs.packetevents.api)
-    testImplementation(libs.junit.jupiter)
-    testImplementation(libs.adventure.api)
-    testRuntimeOnly(libs.snakeyaml)
-    testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 java {
     toolchain.languageVersion = JavaLanguageVersion.of(25)
-}
-
-tasks.test {
-    useJUnitPlatform()
 }
