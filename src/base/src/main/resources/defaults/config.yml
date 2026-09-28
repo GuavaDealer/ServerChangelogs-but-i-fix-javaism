@@ -11,7 +11,7 @@
 # - "sqlite": Stores changelogs in a local SQLite database file via JetBrains Exposed.
 # - "mysql", "mariadb", "postgresql", "h2": Connects to a relational database via JetBrains Exposed.
 # - "exposed" / "jdbc": Generic Exposed database storage configured below.
-changelog_storage: yaml
+changelog_storage: sqlite
 
 # Database connection settings when using JetBrains Exposed (sqlite, mysql, mariadb, postgresql, h2, exposed).
 database:

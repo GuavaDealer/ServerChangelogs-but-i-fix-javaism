@@ -2,6 +2,7 @@ plugins {
     `java-library`
 }
 
+@Suppress("VulnerableLibrariesLocal", "RedundantSuppression")
 dependencies {
     api(libs.kotlinx.immutable)
     api(libs.kotlinx.coroutines.core)

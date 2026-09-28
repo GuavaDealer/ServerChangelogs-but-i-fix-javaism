@@ -45,7 +45,7 @@ subprojects {
     shadowJar {
         mergeServiceFiles()
         archiveFileName = "${rootProject.name}-${project.name}-${project.version}.jar"
-        destinationDirectory.set(rootProject.layout.projectDirectory.dir("final"))
+        destinationDirectory = rootProject.layout.projectDirectory.dir("final")
         mustRunAfter(cleanFinalArtifacts)
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }

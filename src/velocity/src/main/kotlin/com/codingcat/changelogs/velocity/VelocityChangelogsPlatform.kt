@@ -14,6 +14,7 @@ import com.github.retrooper.packetevents.PacketEventsAPI
 import com.github.shynixn.mccoroutine.velocity.SuspendingPluginContainer
 import com.github.shynixn.mccoroutine.velocity.scope
 import com.google.inject.Inject
+import com.velocitypowered.api.event.PostOrder
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent
 import com.velocitypowered.api.event.proxy.ProxyPreShutdownEvent
@@ -72,7 +73,7 @@ class VelocityChangelogsPlatform @Inject constructor(
 
     private var earlyInitSucceeded = false
 
-    @Subscribe
+    @Subscribe(order = PostOrder.LATE)
     suspend fun onProxyInitialization(event: ProxyInitializeEvent) {
         runCatching {
             Class.forName("com.github.retrooper.packetevents.PacketEvents")

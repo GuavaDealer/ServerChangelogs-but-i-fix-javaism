@@ -9,6 +9,7 @@ repositories {
     maven("https://repo.papermc.io/repository/maven-public/")
 }
 
+@Suppress("VulnerableLibrariesLocal")
 dependencies {
     implementation(projects.base)
     implementation(projects.platformapi)
@@ -34,5 +35,9 @@ tasks {
     runServer {
         minecraftVersion(project.property("minecraft_version").toString())
         jvmArgs("-Xms1G", "-Xmx1G")
+        downloadPlugins {
+            modrinth(id = "packetevents", version = "m78nFxYg")
+            modrinth(id = "luckperms", version = "b0mk8uS6")
+        }
     }
 }

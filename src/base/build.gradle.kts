@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+@Suppress("VulnerableLibrariesLocal")
 dependencies {
     implementation(projects.platformapi)
     api(libs.slf4k)

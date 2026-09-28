@@ -35,5 +35,10 @@ velocityPluginJson {
 tasks {
     runVelocity {
         velocityVersion(libs.versions.velocity.api.get())
+        jvmArgs("-Xms512M", "-Xmx512M")
+        downloadPlugins {
+            modrinth(id = "packetevents", version = "p0asH9aC")
+            modrinth(id = "luckperms", version = "tamnmXad")
+        }
     }
 }
