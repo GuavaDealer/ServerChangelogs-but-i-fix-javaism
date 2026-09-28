@@ -45,8 +45,11 @@ object ChangelogJoinListener {
     }
 
     fun checkShowDialog(player: PlatformPlayer, freeze: Boolean): Boolean {
-        if (player.isFirstJoin) return false
-        val unreadChangelogs = ServerChangelogs.changelogStorage.listEntries().any { !it.hasRead(player) }
+        val storage = ServerChangelogs.changelogStorage
+        val firstSeenAt = storage.recordFirstSeen(player.uniqueId, java.time.Instant.now())
+        val unreadChangelogs = storage.listEntries().any { entry ->
+            !entry.hasRead(player) && entry.recordedAt.isAfter(firstSeenAt)
+        }
         if (!unreadChangelogs) return false
         val dialog = PluginDialog.Holder.getFromType<ChangelogDialog>()
         if (freeze) DialogSessionManager.freeze(player)

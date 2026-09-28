@@ -38,6 +38,7 @@ data class YamlStoredChangelogEntry(
 @Serializable
 data class YamlChangelogDocument(
     val entries: List<YamlStoredChangelogEntry> = emptyList(),
+    val playerFirstSeen: Map<String, String> = emptyMap(),
 )
 
 class YamlChangelogStorage(
@@ -46,6 +47,7 @@ class YamlChangelogStorage(
     private val lock = Any()
     private val yaml: Yaml = Yaml(configuration = YamlConfiguration(strictMode = false))
     private var cache: MutableList<ChangelogEntry> = mutableListOf()
+    private var playerFirstSeen: MutableMap<UUID, Instant> = java.util.concurrent.ConcurrentHashMap()
 
     override val displayName: String = "YAML File"
 
@@ -53,6 +55,7 @@ class YamlChangelogStorage(
         synchronized(lock) {
             if (!filePath.exists()) {
                 this.cache = mutableListOf()
+                this.playerFirstSeen = java.util.concurrent.ConcurrentHashMap()
                 this.saveLocked()
                 return
             }
@@ -66,6 +69,11 @@ class YamlChangelogStorage(
                 this.cache = doc.entries.mapIndexedTo(mutableListOf()) { index, entry ->
                     deserializeEntry(index, entry)
                 }
+                this.playerFirstSeen = doc.playerFirstSeen.mapNotNull { (uuidStr, timeStr) ->
+                    runCatching {
+                        UUID.fromString(uuidStr) to DateTimeFormatter.ISO_INSTANT.parse(timeStr, Instant::from)
+                    }.getOrNull()
+                }.toMap(java.util.concurrent.ConcurrentHashMap())
             } catch (e: Exception) {
                 throw RuntimeException("Failed to load changelog data from ${filePath}", e)
             }
@@ -73,6 +81,18 @@ class YamlChangelogStorage(
     }
 
     override fun shutdown() {
+    }
+
+    override fun getFirstSeenAt(player: UUID): Instant? = playerFirstSeen[player]
+
+    override fun recordFirstSeen(player: UUID, seenAt: Instant): Instant {
+        synchronized(lock) {
+            val existing = playerFirstSeen[player]
+            if (existing != null) return existing
+            playerFirstSeen[player] = seenAt
+            saveLocked()
+            return seenAt
+        }
     }
 
     override fun storeEntry(entry: ChangelogEntry) {
@@ -107,7 +127,12 @@ class YamlChangelogStorage(
 
     private fun saveLocked() {
         val storedEntries = this.cache.map { serializeEntry(it) }
-        val doc = YamlChangelogDocument(storedEntries)
+        val serializedFirstSeen = this.playerFirstSeen.mapKeys { it.key.toString() }
+            .mapValues { DateTimeFormatter.ISO_INSTANT.format(it.value) }
+        val doc = YamlChangelogDocument(
+            entries = storedEntries,
+            playerFirstSeen = serializedFirstSeen,
+        )
         val text = yaml.encodeToString(YamlChangelogDocument.serializer(), doc)
         val tempPath = filePath.resolveSibling("${filePath.fileName}.tmp")
         try {

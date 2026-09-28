@@ -9,7 +9,6 @@ repositories {
     maven("https://repo.papermc.io/repository/maven-public/")
 }
 
-@Suppress("VulnerableLibrariesLocal")
 dependencies {
     implementation(projects.base)
     implementation(projects.platformapi)

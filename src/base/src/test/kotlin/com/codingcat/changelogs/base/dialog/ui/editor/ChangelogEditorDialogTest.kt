@@ -104,6 +104,10 @@ class ChangelogEditorDialogTest {
                 getByUID(uid)?.playersRead?.add(player)
             }
         }
+        val firstSeen = mutableMapOf<UUID, Instant>()
+        override fun getFirstSeenAt(player: UUID): Instant? = firstSeen[player]
+        override fun recordFirstSeen(player: UUID, seenAt: Instant): Instant =
+            firstSeen.computeIfAbsent(player) { seenAt }
     }
 
     private class TestPlatform(

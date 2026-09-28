@@ -20,6 +20,13 @@ data class ChangelogEntry(
      * Checks whether [player] has already marked this entry as read.
      */
     fun hasRead(player: PlatformPlayer): Boolean {
-        return this.playersRead.contains(player.uniqueId)
+        return hasRead(player.uniqueId)
+    }
+
+    /**
+     * Checks whether player with [uuid] has already marked this entry as read.
+     */
+    fun hasRead(uuid: UUID): Boolean {
+        return this.playersRead.contains(uuid)
     }
 }

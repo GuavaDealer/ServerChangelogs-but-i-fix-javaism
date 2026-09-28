@@ -32,6 +32,10 @@ class EditorSessionTest {
         override fun markAllAsRead(uids: Collection<Int>, player: UUID) {}
         override fun markAsRead(uid: Int, player: UUID) {}
         override fun nextUID(): Int = (entries.keys.maxOrNull() ?: 0) + 1
+        val firstSeen = mutableMapOf<UUID, Instant>()
+        override fun getFirstSeenAt(player: UUID): Instant? = firstSeen[player]
+        override fun recordFirstSeen(player: UUID, seenAt: Instant): Instant =
+            firstSeen.computeIfAbsent(player) { seenAt }
     }
 
     @Test

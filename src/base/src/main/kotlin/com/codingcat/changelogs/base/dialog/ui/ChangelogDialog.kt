@@ -126,7 +126,7 @@ open class ChangelogDialog(
         canManage: Boolean,
     ): Component {
         val linesComponent: Component = createLinesComponent(player, null, entry.lines)
-        val unreadSuffix = if (!entry.hasRead(player)) "_unread" else ""
+        val unreadSuffix = if (this.storage.isUnreadFor(entry, player.uniqueId)) "_unread" else ""
         var entryComponent: Component = TranslationSource.translatableManual(
             player,
             "dialog.changelog.entry${unreadSuffix}",
@@ -165,7 +165,9 @@ open class ChangelogDialog(
             val canManage = this.canManage(source, sessionManager)
             when (action) {
                 "confirm_read" -> {
-                    val unreadEntries = this.storage.listEntries().filter { !it.hasRead(source) }
+                    val unreadEntries = this.storage.listEntries().filter {
+                        this.storage.isUnreadFor(it, source.uniqueId)
+                    }
                     if (unreadEntries.isNotEmpty()) {
                         val uids = unreadEntries.map { it.uid }
                         ServerChangelogs.platform.coroutineScope.launch {

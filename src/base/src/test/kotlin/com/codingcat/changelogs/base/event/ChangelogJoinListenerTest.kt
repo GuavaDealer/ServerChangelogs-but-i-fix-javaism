@@ -88,6 +88,7 @@ class ChangelogJoinListenerTest {
     }
 
     private class TestStorage(val entries: List<ChangelogEntry>) : ChangelogStorage {
+        val firstSeen = mutableMapOf<UUID, Instant>()
         override val displayName: String = "MockStorage"
         override fun init() {}
         override fun shutdown() {}
@@ -99,6 +100,9 @@ class ChangelogJoinListenerTest {
         override fun markAllAsRead(uids: Collection<Int>, player: UUID) {}
         override fun markAsRead(uid: Int, player: UUID) {}
         override fun nextUID(): Int = 1
+        override fun getFirstSeenAt(player: UUID): Instant? = firstSeen[player]
+        override fun recordFirstSeen(player: UUID, seenAt: Instant): Instant =
+            firstSeen.computeIfAbsent(player) { seenAt }
     }
 
     private class TestPlatform(val dataDir: Path) : ChangelogsPlatform {
@@ -167,7 +171,7 @@ class ChangelogJoinListenerTest {
         val entry = ChangelogEntry(
             uid = 1,
             lines = listOf(Component.text("Update 1")),
-            recordedAt = Instant.now(),
+            recordedAt = Instant.now().minusSeconds(60),
             author = null,
             playersRead = mutableSetOf(),
         )
@@ -190,6 +194,7 @@ class ChangelogJoinListenerTest {
 
         // Normal player with unread changelogs should show dialog
         val normalPlayer = DummyPlayer(isFirstJoin = false)
+        storage.firstSeen[normalPlayer.uniqueId] = Instant.EPOCH
         assertTrue(ChangelogJoinListener.checkShowDialog(normalPlayer, freeze = true))
         assertTrue(DialogSessionManager.isFrozen(normalPlayer))
         DialogSessionManager.unfreeze(normalPlayer)

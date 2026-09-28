@@ -48,6 +48,16 @@ object ChangelogReadsTable : Table("server_changelogs_reads") {
 }
 
 /**
+ * Exposed database table tracking player first-seen connection timestamps.
+ */
+object PlayerFirstSeenTable : Table("server_changelogs_first_seen") {
+    val playerUuid = varchar("player_uuid", 36)
+    val firstSeenAt = timestamp("first_seen_at")
+
+    override val primaryKey = PrimaryKey(playerUuid)
+}
+
+/**
  * Relational database storage engine powered by JetBrains Exposed.
  */
 class ExposedChangelogStorage(
@@ -58,6 +68,7 @@ class ExposedChangelogStorage(
     private val lock = Any()
     private val gson = Gson()
     private var cache: MutableList<ChangelogEntry> = mutableListOf()
+    private val playerFirstSeen: MutableMap<UUID, Instant> = java.util.concurrent.ConcurrentHashMap()
     private lateinit var database: Database
 
     override val displayName: String = "Exposed Database (${config.type})"
@@ -65,7 +76,7 @@ class ExposedChangelogStorage(
     override fun init() {
         this.database = createDatabase()
         transaction(this.database) {
-            SchemaUtils.create(ChangelogEntriesTable, ChangelogReadsTable)
+            SchemaUtils.create(ChangelogEntriesTable, ChangelogReadsTable, PlayerFirstSeenTable)
         }
         if (config.autoMigrateYaml) {
             checkAutoMigrate()
@@ -76,6 +87,25 @@ class ExposedChangelogStorage(
     }
 
     override fun shutdown() {
+    }
+
+    override fun getFirstSeenAt(player: UUID): Instant? = playerFirstSeen[player]
+
+    override fun recordFirstSeen(player: UUID, seenAt: Instant): Instant {
+        val existing = playerFirstSeen[player]
+        if (existing != null) return existing
+        synchronized(lock) {
+            val doubleCheck = playerFirstSeen[player]
+            if (doubleCheck != null) return doubleCheck
+            playerFirstSeen[player] = seenAt
+            transaction(this.database) {
+                PlayerFirstSeenTable.batchInsert(listOf(player to seenAt), ignore = true) { (p, t) ->
+                    this[PlayerFirstSeenTable.playerUuid] = p.toString()
+                    this[PlayerFirstSeenTable.firstSeenAt] = t
+                }
+            }
+            return seenAt
+        }
     }
 
     override suspend fun initAsync() = withContext(Dispatchers.IO) {
@@ -213,6 +243,13 @@ class ExposedChangelogStorage(
                 val pUuid = runCatching { UUID.fromString(row[ChangelogReadsTable.playerUuid]) }.getOrNull()
                 if (pUuid != null) {
                     readsMap.computeIfAbsent(cUid) { mutableSetOf() }.add(pUuid)
+                }
+            }
+
+            PlayerFirstSeenTable.selectAll().forEach { row ->
+                val pUuid = runCatching { UUID.fromString(row[PlayerFirstSeenTable.playerUuid]) }.getOrNull()
+                if (pUuid != null) {
+                    playerFirstSeen[pUuid] = row[PlayerFirstSeenTable.firstSeenAt]
                 }
             }
 

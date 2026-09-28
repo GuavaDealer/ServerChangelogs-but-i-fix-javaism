@@ -71,9 +71,9 @@ Most of the actual UI customization can be done in the **language files** (found
 
 Out of the box, the plugin currently only supports **American English** (`en_US`), but more language files can be added using the same country code format (e.g. `de_DE`, `fr_FR`, `en_GB`).
 
-### Custom MiniMessage tags & sub-translations
+### Custom MiniMessage Tags & Sub-Translations
 
-The plugin registers a few custom **MiniMessage tags** you can use in any of the translations, including:
+The plugin registers a few custom **MiniMessage Tags** you can use in any of the translations, including:
 
 - `<prefix>`: The plugin prefix defined in the `prefix` translation
 - `<plugin:name>`: The (internally defined) name of the plugin
@@ -95,7 +95,6 @@ If multiple arguments are present in a certain translation, they can be identifi
 ServerChangelogs was originally made for a **smaller minecraft server** I'm a part of, to make players aware of changes without having to rely on e.g. **Discord**. Because we wanted this feature to be available pretty fast, the plugin initially won't have as many features as I'd like it to have.
 
 The roadmap below contains some of the features that I'm **planning to add** in the future:
-
 - [x] **JDBC (relational) database support**:
   Currently, the plugin stores all changelog data (including who has already seen what changelogs) in a plain YAML file.
   The reason for this mostly comes down to the stuff above (we wanted a solution fast), so we didn't prioritize storage.
@@ -107,14 +106,14 @@ The roadmap below contains some of the features that I'm **planning to add** in 
 
 - [ ] **Customizable changelog dialog layout**:
   Currently, the changelog dialog always shows all previous changelogs, with unread ones marked red.
-  In the future, it'd be nice to have an option for this, e.g., so players on join could also only see the most recent changelog.
+  In the future, it'd be nice to have an option for this, e.g. so players on join could also only see the most recent changelog.
 
 - [ ] **Paged changelogs**:
   At the moment, all existing changelogs are just added to the dialog without any additional checks.
   While this is fine with just a few of them, it could quickly become an issue with a long history of changelogs.
   So adding a page system with a configurable amount of changelogs per page would be great!
 
-- [ ] **Player first-join storage**:
+- [x] **Player first-join storage**:
   Right now, changelogs are just displayed to players upon joining whenever they haven't read them (except for the **first time** a player joins a server).
   This can be very confusing to newish players, since they weren't there for all the previous changes to begin with!
   A possible (while not 100% perfect) solution to this would be storing when the player initially joined the server / was first seen by the plugin, to then only display relevant changelogs to them.

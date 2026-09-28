@@ -102,6 +102,10 @@ class ChangelogDialogTest {
                 getByUID(uid)?.playersRead?.add(player)
             }
         }
+        val firstSeen = mutableMapOf<UUID, Instant>()
+        override fun getFirstSeenAt(player: UUID): Instant? = firstSeen[player]
+        override fun recordFirstSeen(player: UUID, seenAt: Instant): Instant =
+            firstSeen.computeIfAbsent(player) { seenAt }
     }
 
     private class TestPlatform(
@@ -235,6 +239,7 @@ class ChangelogDialogTest {
             playersRead = mutableSetOf(),
         )
         memoryStorage.storeEntry(entry)
+        memoryStorage.recordFirstSeen(player.uniqueId, Instant.EPOCH)
 
         val dialog = ChangelogDialog(
             storage = memoryStorage,

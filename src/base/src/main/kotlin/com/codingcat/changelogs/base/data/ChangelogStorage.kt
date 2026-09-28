@@ -4,7 +4,8 @@ import com.codingcat.changelogs.base.ServerChangelogs
 import com.codingcat.changelogs.base.config.PluginConfig
 import com.codingcat.changelogs.base.data.storage.ExposedChangelogStorage
 import com.codingcat.changelogs.base.data.storage.YamlChangelogStorage
-import java.util.*
+import java.time.Instant
+import java.util.UUID
 
 /**
  * Persistence abstraction for storing, updating, reading, and indexing [ChangelogEntry] items.
@@ -55,6 +56,27 @@ interface ChangelogStorage : Iterable<ChangelogEntry> {
      */
     fun markAsRead(uid: Int, player: UUID) {
         markAllAsRead(listOf(uid), player)
+    }
+
+    /**
+     * Retrieves the instant [player] was first observed connecting to the server.
+     */
+    fun getFirstSeenAt(player: UUID): Instant?
+
+    /**
+     * Records [player]'s first observed connection timestamp.
+     * If already recorded, returns the existing timestamp without modifying.
+     */
+    fun recordFirstSeen(player: UUID, seenAt: Instant = Instant.now()): Instant
+
+    /**
+     * Determines whether [entry] should be treated as unread for [player].
+     * An entry is only unread if the player has not yet read it and it was published
+     * after the player was first seen on the server.
+     */
+    fun isUnreadFor(entry: ChangelogEntry, player: UUID): Boolean {
+        val firstSeen = getFirstSeenAt(player) ?: return false
+        return !entry.hasRead(player) && entry.recordedAt.isAfter(firstSeen)
     }
 
     /**
