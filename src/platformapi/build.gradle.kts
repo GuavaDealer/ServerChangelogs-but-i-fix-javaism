@@ -10,4 +10,6 @@ dependencies {
     compileOnly(libs.mojang.brigadier)
     compileOnly(libs.slf4j.api)
     testImplementation(libs.kotlin.test)
+    testImplementation(libs.bundles.adventure)
+    testImplementation(libs.mojang.brigadier)
 }

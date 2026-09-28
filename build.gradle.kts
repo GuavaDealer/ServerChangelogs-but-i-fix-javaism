@@ -2,6 +2,7 @@ plugins {
     id("org.jetbrains.kotlin.jvm") apply false
     id("com.gradleup.shadow") apply false
     alias(libs.plugins.kotlin.serialization) apply false
+    alias(libs.plugins.kover)
 }
 
 group = project.findProperty("group")?.toString() ?: missingProperty("group")
@@ -22,11 +23,16 @@ val cleanFinalArtifacts = tasks.register<Delete>("cleanFinalArtifacts") {
     delete(finalFile)
 }
 
+repositories {
+    mavenCentral()
+}
+
 @Suppress("AvoidApplyPluginMethod")
 subprojects {
     version = rootProject.version
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "java")
+    apply(plugin = "org.jetbrains.kotlinx.kover")
 
     java {
         toolchain.languageVersion = JavaLanguageVersion.of(javaVersion)
@@ -81,6 +87,29 @@ tasks {
 
         subprojects.forEach { subproject ->
             delete(subproject.layout.buildDirectory)
+        }
+    }
+}
+
+dependencies {
+    kover(project(":base"))
+    kover(project(":platformapi"))
+}
+
+kover {
+    reports {
+        filters {
+            excludes {
+                packages("com.codingcat.changelogs.paper.*", "com.codingcat.changelogs.velocity.*")
+            }
+        }
+        total {
+            verify {
+                onCheck = true
+                rule {
+                    minBound(75)
+                }
+            }
         }
     }
 }

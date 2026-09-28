@@ -16,4 +16,9 @@ dependencies {
     compileOnly(libs.packetevents.api)
     testImplementation(libs.kotlin.test)
     testImplementation(libs.bundles.adventure)
+    testImplementation(libs.mojang.brigadier)
+    testImplementation(libs.packetevents.api)
+    testImplementation(libs.packetevents.paper)
+    testImplementation(libs.netty.buffer)
+    testImplementation(libs.slf4j.api)
 }

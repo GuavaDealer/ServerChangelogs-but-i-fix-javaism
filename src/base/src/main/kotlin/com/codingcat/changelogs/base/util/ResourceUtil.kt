@@ -5,6 +5,7 @@ import java.net.URISyntaxException
 import java.net.URL
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
+import java.nio.file.Path
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.name
 
@@ -26,10 +27,20 @@ object ResourceUtil {
 
     fun listResources(dirPath: String): Collection<String> {
         try {
-            val resourceUrl: URL = checkNotNull(classLoader.getResource(dirPath)) { "Resource not found" }
+            val resourceUrl: URL = checkNotNull(classLoader.getResource(dirPath)) { "Resource not found: ${dirPath}" }
             val uri = resourceUrl.toURI()
-            return FileSystems.newFileSystem(uri, emptyMap<String, Any?>()).use { fileSystem ->
-                fileSystem.getPath(dirPath).listDirectoryEntries().map { it.name }
+            return if (uri.scheme.equals("jar", ignoreCase = true)) {
+                val (fileSystem, shouldClose) = runCatching { FileSystems.getFileSystem(uri) to false }
+                    .getOrElse { FileSystems.newFileSystem(uri, emptyMap<String, Any?>()) to true }
+                try {
+                    fileSystem.getPath(dirPath).listDirectoryEntries().map { it.name }
+                } finally {
+                    if (shouldClose) {
+                        fileSystem.close()
+                    }
+                }
+            } else {
+                Path.of(uri).listDirectoryEntries().map { it.name }
             }
         } catch (e: IOException) {
             throw RuntimeException("Failed to list jar resources at ${dirPath}", e)

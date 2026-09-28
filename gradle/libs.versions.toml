@@ -17,6 +17,8 @@ coroutines = "1.11.0"
 kotlinx-serialization = "1.11.0"
 exposed = "1.5.0"
 sqlite-jdbc = "3.53.4.0"
+netty = "4.1.118.Final"
+kover = "0.9.9"
 
 [libraries]
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
@@ -47,6 +49,7 @@ exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "e
 exposed-dao = { module = "org.jetbrains.exposed:exposed-dao", version.ref = "exposed" }
 exposed-java-time = { module = "org.jetbrains.exposed:exposed-java-time", version.ref = "exposed" }
 sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqlite-jdbc" }
+netty-buffer = { module = "io.netty:netty-buffer", version.ref = "netty" }
 
 [bundles]
 adventure = [
@@ -68,3 +71,4 @@ run-velocity = { id = "xyz.jpenilla.run-velocity", version.ref = "run-task" }
 resource-factory-paper-convention = { id = "xyz.jpenilla.resource-factory-paper-convention", version.ref = "resource-factory" }
 resource-factory-velocity-convention = { id = "xyz.jpenilla.resource-factory-velocity-convention", version.ref = "resource-factory" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }

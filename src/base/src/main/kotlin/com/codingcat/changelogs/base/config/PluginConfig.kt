@@ -187,10 +187,16 @@ class PluginConfig(
         return data.useNativeFallbackPermissions
     }
 
-    fun createChangelogHeaderStack(): ItemStack? =
-        data.dialogHeaderItem?.let(::createStack)
+    fun createChangelogHeaderStack(): ItemStack? {
+        val itemStr = data.dialogHeaderItem ?: return null
+        val platform = runCatching { ServerChangelogs.platform }.getOrNull() ?: return null
+        return createStack(itemStr, platform.nativeItemManager)
+    }
 
-    private fun createStack(input: String): ItemStack {
+    private fun createStack(
+        input: String,
+        nativeManager: com.codingcat.changelogs.platformapi.item.NativeItemManager,
+    ): ItemStack {
         val idPart = if (input.contains("[")) input.substring(0, input.indexOf('[')) else input
         val componentPart = if (input.contains("[")) input.substring(input.indexOf('[')) else null
         val inputKey = runCatching {
@@ -198,7 +204,6 @@ class PluginConfig(
         }.getOrElse { e ->
             throw RuntimeException("Invalid item ID \"${idPart}\"", e)
         }
-        val nativeManager = ServerChangelogs.platform.nativeItemManager
         var nativeStack: Any = nativeManager.createNativeStack(inputKey, 1)
             ?: throw NullPointerException("Unknown item ID \"${idPart}\"")
         componentPart?.let {

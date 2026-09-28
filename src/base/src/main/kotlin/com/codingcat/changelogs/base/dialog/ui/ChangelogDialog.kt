@@ -34,7 +34,7 @@ private const val HEADER_ITEM_WIDTH: Int = 17
 private const val HEADER_ITEM_HEIGHT: Int = 17
 private const val CLOSE_BUTTON_WIDTH: Int = 60
 
-class ChangelogDialog(
+open class ChangelogDialog(
     private val storage: ChangelogStorage,
     private val holder: PluginDialog.Holder,
     private val dateFormatter: DateTimeFormatter,
@@ -43,6 +43,14 @@ class ChangelogDialog(
     private val useFallbackPermissions: Boolean,
 ) : PluginDialog {
     override val id: String = "changelog_view"
+
+    open fun showDialogView(
+        player: PlatformPlayer,
+        sessionManager: DialogSessionManager,
+        packetPhase: DialogPackets.PacketPhase,
+    ) {
+        showTo(player, sessionManager, packetPhase)
+    }
 
     override fun build(
         player: PlatformPlayer,

@@ -40,7 +40,8 @@ import kotlin.io.path.writeText
 object ServerChangelogs : Entrypoint {
     override lateinit var platform: ChangelogsPlatform
 
-    override val packetEventsApi: PacketEventsAPI<out Any> by lazy { PacketEvents.getAPI() }
+    override val packetEventsApi: PacketEventsAPI<out Any>
+        get() = PacketEvents.getAPI()
 
     /**
      * Adventure key namespace for ServerChangelogs identifiers.
@@ -184,7 +185,21 @@ object ServerChangelogs : Entrypoint {
     /**
      * Active configuration settings instance.
      */
-    fun pluginConfig(): PluginConfig = this.config
+    fun pluginConfig(): PluginConfig {
+        if (!::config.isInitialized) {
+            val configPath: Path = runCatching { platform.getDataPath().resolve("config.yml") }
+                .getOrElse { Path.of("config.yml") }
+            this.config = PluginConfig(configPath)
+            if (configPath.exists()) {
+                this.config.reload()
+            }
+        }
+        return this.config
+    }
+
+    fun setConfig(config: PluginConfig) {
+        this.config = config
+    }
 
     /**
      * Logs an informational message translated for the console locale.
