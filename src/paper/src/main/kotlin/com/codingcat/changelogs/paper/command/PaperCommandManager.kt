@@ -11,13 +11,16 @@ import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents
 import kotlinx.collections.immutable.ImmutableSet
 import org.bukkit.plugin.Plugin
 
+/**
+ * Command manager implementation for Paper platform using Brigadier lifecycle events.
+ */
 @Suppress("UNCHECKED_CAST")
 object PaperCommandManager : PlatformCommandManager {
-    private val registrarActions: MutableSet<(Commands) -> Unit> = HashSet()
+    private val registrarActions: MutableSet<(Commands) -> Unit> = hashSetOf()
 
     override fun register(node: LiteralCommandNode<*>, aliases: ImmutableSet<String>) {
         val commandNode = node as LiteralCommandNode<CommandSourceStack>
-        registrarActions.add { commands: Commands -> commands.register(commandNode, aliases) }
+        this.registrarActions.add { commands: Commands -> commands.register(commandNode, aliases) }
     }
 
     @Throws(IllegalArgumentException::class)
@@ -28,6 +31,9 @@ object PaperCommandManager : PlatformCommandManager {
         return WrappedCommandSourceStack(platformCommandSource, PaperPlayerManager)
     }
 
+    /**
+     * Binds queued command registration actions to Paper's lifecycle event manager.
+     */
     fun registerEvents(lifecycleEventManager: LifecycleEventManager<Plugin>) {
         lifecycleEventManager.registerEventHandler(
             LifecycleEvents.COMMANDS,

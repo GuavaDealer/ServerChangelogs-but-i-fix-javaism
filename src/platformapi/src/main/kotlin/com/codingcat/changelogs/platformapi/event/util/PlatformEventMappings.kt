@@ -3,14 +3,16 @@ package com.codingcat.changelogs.platformapi.event.util
 import com.codingcat.changelogs.platformapi.event.impl.PlatformEvent
 
 /**
- * Registry holding bidirectional type mappings between platform-neutral [PlatformEvent] types and platform-native events [E].
+ * Registry holding bidirectional type mappings between platform-neutral [PlatformEvent]
+ * types and platform-native events [E].
  */
 @Suppress("UNCHECKED_CAST")
 abstract class PlatformEventMappings<E : Any> {
     private val eventMappings = mutableSetOf<Mapping<*, out E>>()
 
     /**
-     * Registers a mapping translating native event [nativeEventCls] into platform event [platformEventCls] using [mapper].
+     * Registers a mapping translating native event [nativeEventCls] into platform event
+     * [platformEventCls] using [mapper].
      */
     protected fun <T : PlatformEvent, N : E> register(
         platformEventCls: Class<T>,

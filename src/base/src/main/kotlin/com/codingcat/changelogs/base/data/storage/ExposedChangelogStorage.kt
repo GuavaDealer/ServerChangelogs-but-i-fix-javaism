@@ -323,11 +323,13 @@ class ExposedChangelogStorage(
             }
 
             "mysql" -> {
-                "jdbc:mysql://${config.host}:${config.port}/${config.database}?useSSL=false&allowPublicKeyRetrieval=true"
+                "jdbc:mysql://${config.host}:${config.port}/${config.database}" +
+                        "?useSSL=false&allowPublicKeyRetrieval=true"
             }
 
             "mariadb" -> {
-                "jdbc:mariadb://${config.host}:${config.port}/${config.database}?useSSL=false&allowPublicKeyRetrieval=true"
+                "jdbc:mariadb://${config.host}:${config.port}/${config.database}" +
+                        "?useSSL=false&allowPublicKeyRetrieval=true"
             }
 
             "postgresql", "postgres" -> {

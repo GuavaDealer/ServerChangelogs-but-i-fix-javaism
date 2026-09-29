@@ -16,13 +16,15 @@ import java.nio.file.Path
 interface ChangelogsPlatform {
     /**
      * Platform logger supporting Adventure component rendering.
-     * Defined as a method to match Paper's [org.bukkit.plugin.Plugin.getComponentLogger] and avoid JVM accidental override errors.
+     * Defined as a method to match Paper's [org.bukkit.plugin.Plugin.getComponentLogger]
+     * and avoid JVM accidental override errors.
      */
     fun getComponentLogger(): ComponentLogger
 
     /**
      * Resolves the root data directory path dedicated to storing plugin configuration and changelogs.
-     * Defined as a method to match Paper's [org.bukkit.plugin.Plugin.getDataPath] and avoid JVM accidental override errors.
+     * Defined as a method to match Paper's [org.bukkit.plugin.Plugin.getDataPath]
+     * and avoid JVM accidental override errors.
      */
     fun getDataPath(): Path
 

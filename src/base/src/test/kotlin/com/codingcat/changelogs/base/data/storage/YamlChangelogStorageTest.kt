@@ -57,7 +57,7 @@ class YamlChangelogStorageTest {
         assertEquals(1, storage.listEntries().size)
         assertEquals(
             "Updated Line 1",
-            (storage.getByUID(1)?.lines?.firstOrNull() as? net.kyori.adventure.text.TextComponent)?.content()
+            (storage.getByUID(1)?.lines?.firstOrNull() as? net.kyori.adventure.text.TextComponent)?.content(),
         )
 
         storage.markAsRead(1, playerUuid)

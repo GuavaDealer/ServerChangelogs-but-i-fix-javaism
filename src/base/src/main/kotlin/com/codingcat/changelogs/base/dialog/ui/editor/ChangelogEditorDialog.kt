@@ -50,6 +50,9 @@ private const val CANCEL_BUTTON_WIDTH: Int = 100
 private const val EDITOR_DIALOG_COLUMNS: Int = 3
 private const val CONFIRM_CLOSE_COLUMNS: Int = 3
 
+/**
+ * Interactive dialog-based changelog editor enabling players with permissions to create and edit entries.
+ */
 class ChangelogEditorDialog(
     private val storage: ChangelogStorage,
     private val useFallbackPermissions: Boolean,
@@ -63,8 +66,8 @@ class ChangelogEditorDialog(
         sessionManager: DialogSessionManager,
     ): Dialog {
         sessionManager.startSessionIfNoneActive(this, player) {
-            this.savedSessions.remove(player.uniqueId)?.takeIf { it.canBeSaved() }
-                ?: EditorSession.Create(storage.nextUID())
+            this@ChangelogEditorDialog.savedSessions.remove(player.uniqueId)?.takeIf { it.canBeSaved() }
+                ?: EditorSession.Create(this@ChangelogEditorDialog.storage.nextUID())
         }
         val session: EditorSession = sessionManager.getSessionData(player, EditorSession::class.java)
         val sessionTranslation = "dialog.editor.${session.id}"
@@ -85,7 +88,13 @@ class ChangelogEditorDialog(
                     TranslationSource.translatable("${prefix}edit"),
                 )
                     .decoration(TextDecoration.BOLD, false)
-                    .clickEvent(sessionManager.createSessionBasedClickEvent(this, "start_edit_line", payload))
+                    .clickEvent(
+                        sessionManager.createSessionBasedClickEvent(
+                            this@ChangelogEditorDialog,
+                            "start_edit_line",
+                            payload,
+                        ),
+                    )
             }
             val remove: Component = translatableManual(
                 player,
@@ -93,7 +102,13 @@ class ChangelogEditorDialog(
                 TranslationSource.translatable("${prefix}remove"),
             )
                 .decoration(TextDecoration.BOLD, false)
-                .clickEvent(sessionManager.createSessionBasedClickEvent(this, "remove_line", payload))
+                .clickEvent(
+                    sessionManager.createSessionBasedClickEvent(
+                        this@ChangelogEditorDialog,
+                        "remove_line",
+                        payload,
+                    ),
+                )
             var finalCmp = line.appendSpace()
             if (!isEditing) edit?.let { finalCmp = finalCmp.append(it).appendSpace() }
             finalCmp.append(remove)

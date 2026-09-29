@@ -34,8 +34,8 @@ class PlatformEventMappingsTest {
         val nativeEvent = NativeTestEvent("hello")
 
         @Suppress("UNCHECKED_CAST")
-        val converted =
-            (mapping as PlatformEventMappings.Mapping<PlatformTestEvent, NativeTestEvent>).convertToPlatform(nativeEvent)
+        val converted = (mapping as PlatformEventMappings.Mapping<PlatformTestEvent, NativeTestEvent>)
+            .convertToPlatform(nativeEvent)
 
         assertEquals("wrapped:hello", converted.message)
     }

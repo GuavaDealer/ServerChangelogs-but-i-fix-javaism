@@ -26,7 +26,8 @@ interface PermissionAudienceWrapper {
     }
 
     /**
-     * Evaluates permission presence while treating unset ([TriState.NOT_SET]) status as granted if [trueIfUnset] is true.
+     * Evaluates permission presence while treating unset ([TriState.NOT_SET]) status
+     * as granted if [trueIfUnset] is true.
      */
     fun hasPermission(permission: String, trueIfUnset: Boolean): Boolean {
         val value = asPermissionChecker().value(permission)

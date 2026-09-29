@@ -9,12 +9,15 @@ import com.velocitypowered.api.event.AwaitingEventExecutor
 import com.velocitypowered.api.event.EventManager
 import com.velocitypowered.api.event.EventTask
 
+/**
+ * Event manager implementation adapting Velocity proxy events to platform events.
+ */
 @Suppress("UNCHECKED_CAST")
 object VelocityEventManager : PlatformEventManager {
     lateinit var eventManager: EventManager
     lateinit var platform: VelocityChangelogsPlatform
 
-    private val handlerSet: MutableSet<PlatformMappingHandler<*>> = HashSet()
+    private val handlerSet: MutableSet<PlatformMappingHandler<*>> = hashSetOf()
     private val eventMappings: VelocityEventMappings = VelocityEventMappings(VelocityPlayerManager)
 
     override fun <T : PlatformEvent> registerListener(eventCls: Class<T>, listener: (T) -> Unit) {
@@ -22,7 +25,7 @@ object VelocityEventManager : PlatformEventManager {
         val mappingHandler = PlatformMappingHandler(listener, mapping)
 
         val nativeClass = mapping.nativeEventCls as Class<Any>
-        this.eventManager.register(platform, nativeClass, mappingHandler)
+        this.eventManager.register(this.platform, nativeClass, mappingHandler)
         this.handlerSet.add(mappingHandler)
     }
 
@@ -31,11 +34,11 @@ object VelocityEventManager : PlatformEventManager {
     }
 
     override fun unregisterIf(listenerPredicate: (Any) -> Boolean) {
-        val iterator = handlerSet.iterator()
+        val iterator = this.handlerSet.iterator()
         while (iterator.hasNext()) {
             val handler = iterator.next()
             if (listenerPredicate(handler.listener)) {
-                this.eventManager.unregister(platform, handler)
+                this.eventManager.unregister(this.platform, handler)
                 iterator.remove()
             }
         }
@@ -51,12 +54,12 @@ object VelocityEventManager : PlatformEventManager {
         private val mapping: PlatformEventMappings.Mapping<T, out Any>,
     ) : AwaitingEventExecutor<Any> {
         override fun execute(event: Any) {
-            executeInternal(event)
+            this.executeInternal(event)
         }
 
         override fun executeAsync(event: Any): EventTask {
             return EventTask.async {
-                executeInternal(event)
+                this@PlatformMappingHandler.executeInternal(event)
             }
         }
 

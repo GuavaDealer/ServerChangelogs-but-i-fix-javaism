@@ -88,16 +88,19 @@ class PluginConfig(
      * Asynchronously attempts to reload and validate configuration on Dispatchers.IO.
      */
     suspend fun tryReloadAsync() = withContext(Dispatchers.IO) {
-        tryReload()
+        this@PluginConfig.tryReload()
     }
 
     /**
      * Asynchronously reloads configuration from disk on Dispatchers.IO.
      */
     suspend fun reloadAsync() = withContext(Dispatchers.IO) {
-        reload()
+        this@PluginConfig.reload()
     }
 
+    /**
+     * Synchronously reads and deserializes the configuration file from disk.
+     */
     fun reload() {
         val text = this.path.readText()
         this.data = if (text.isBlank()) {

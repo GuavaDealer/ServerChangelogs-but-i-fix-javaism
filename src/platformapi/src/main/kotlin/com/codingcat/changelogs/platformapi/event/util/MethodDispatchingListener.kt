@@ -5,7 +5,8 @@ import com.codingcat.changelogs.platformapi.event.impl.PlatformEvent
 import java.lang.reflect.InvocationTargetException
 
 /**
- * Interface enabling reflective discovery and binding of methods annotated with [ListenerMethod] to a [PlatformEventManager].
+ * Interface enabling reflective discovery and binding of methods annotated
+ * with [ListenerMethod] to a [PlatformEventManager].
  */
 interface MethodDispatchingListener {
     /**

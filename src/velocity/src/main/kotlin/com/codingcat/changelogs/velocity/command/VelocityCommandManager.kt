@@ -11,17 +11,20 @@ import com.velocitypowered.api.command.CommandMeta
 import com.velocitypowered.api.command.CommandSource
 import kotlinx.collections.immutable.ImmutableSet
 
+/**
+ * Command manager implementation adapting Brigadier commands to Velocity's [CommandManager].
+ */
 @Suppress("UNCHECKED_CAST")
 object VelocityCommandManager : PlatformCommandManager {
     lateinit var commandManager: CommandManager
     lateinit var platform: VelocityChangelogsPlatform
     override fun register(node: LiteralCommandNode<*>, aliases: ImmutableSet<String>) {
         val command = BrigadierCommand(node as LiteralCommandNode<CommandSource>)
-        val commandMeta: CommandMeta = commandManager.metaBuilder(command)
+        val commandMeta: CommandMeta = this.commandManager.metaBuilder(command)
             .aliases(*aliases.toTypedArray())
-            .plugin(platform)
+            .plugin(this.platform)
             .build()
-        commandManager.register(commandMeta, command)
+        this.commandManager.register(commandMeta, command)
     }
 
     @Throws(IllegalArgumentException::class)

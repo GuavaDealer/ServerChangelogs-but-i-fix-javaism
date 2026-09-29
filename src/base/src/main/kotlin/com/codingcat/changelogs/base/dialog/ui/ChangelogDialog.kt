@@ -34,6 +34,9 @@ private const val HEADER_ITEM_WIDTH: Int = 17
 private const val HEADER_ITEM_HEIGHT: Int = 17
 private const val CLOSE_BUTTON_WIDTH: Int = 60
 
+/**
+ * Dialog UI presenting published server changelogs to players.
+ */
 open class ChangelogDialog(
     private val storage: ChangelogStorage,
     private val holder: PluginDialog.Holder,
@@ -44,6 +47,9 @@ open class ChangelogDialog(
 ) : PluginDialog {
     override val id: String = "changelog_view"
 
+    /**
+     * Shows the changelog view dialog to the specified player during the given packet phase.
+     */
     open fun showDialogView(
         player: PlatformPlayer,
         sessionManager: DialogSessionManager,
@@ -90,7 +96,7 @@ open class ChangelogDialog(
             )
         } else {
             entries.forEach { entry ->
-                val formatted = formatEntry(entry, player, sessionManager, canManage)
+                val formatted = this@ChangelogDialog.formatEntry(entry, player, sessionManager, canManage)
                 bodyList.add(
                     PlainMessageDialogBody(
                         PlainMessage(formatted, LINE_WIDTH),

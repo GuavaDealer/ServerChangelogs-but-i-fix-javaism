@@ -35,27 +35,35 @@ object ServerChangelogsCommand : AbstractCommand(
         builder.literal("create") {
             requiresPermission("command.create", false)
             executesPlayer { player, _ ->
-                plugin.dialogHolder.getFromType<ChangelogEditorDialog>()
-                    .showTo(player, plugin.dialogSessionManager, DialogPackets.PacketPhase.PLAY)
+                this@ServerChangelogsCommand.plugin.dialogHolder.getFromType<ChangelogEditorDialog>()
+                    .showTo(
+                        player,
+                        this@ServerChangelogsCommand.plugin.dialogSessionManager,
+                        DialogPackets.PacketPhase.PLAY,
+                    )
             }
         }
 
         builder.literal("view") {
             requiresPermission("command.view", true)
             executesPlayer { player, _ ->
-                plugin.dialogHolder.getFromType<ChangelogDialog>()
-                    .showTo(player, plugin.dialogSessionManager, DialogPackets.PacketPhase.PLAY)
+                this@ServerChangelogsCommand.plugin.dialogHolder.getFromType<ChangelogDialog>()
+                    .showTo(
+                        player,
+                        this@ServerChangelogsCommand.plugin.dialogSessionManager,
+                        DialogPackets.PacketPhase.PLAY,
+                    )
             }
         }
 
         builder.literal("reload") {
             requiresPermission("command.reload")
             executesSourceSuspend { source, _ ->
-                executeReload(source, false)
+                this@ServerChangelogsCommand.executeReload(source, false)
             }
             literal("--force") {
                 executesSourceSuspend { source, _ ->
-                    executeReload(source, true)
+                    this@ServerChangelogsCommand.executeReload(source, true)
                 }
             }
         }

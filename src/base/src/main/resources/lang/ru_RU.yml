@@ -1,3 +1,8 @@
+# ==============================================================================
+# ServerChangelogs Localization: ru_RU (Russian)
+# Defines player- and console-facing MiniMessage translation templates.
+# ==============================================================================
+
 # Параметр <click:open_url:...> ниже делает так, что нажатие на название плагина в любом месте
 # (включая префикс) откроет страницу на Modrinth! Если это не нужно, можно раскомментировать версию
 # строкой ниже (убрать #) и закомментировать текущую (поставить # перед ней).
@@ -25,7 +30,10 @@ command: # Переводы команд плагина
       details: "<red>Подробности непредвиденной ошибки перезагрузки:"
       invalid: "<prefix><red>Некорректная конфигурация: <yellow><arg:0>"
       dialog_reject:
-        saved_sessions: "<prefix><yellow>Остались сохранённые <aqua>черновики</aqua> редактора. Обратите внимание: перезагрузка <red>удалит</red> эти черновики! Чтобы всё равно перезагрузить плагин, <click:suggest_command:'/changelogs reload --force'><red><u>нажмите сюда</u></red></click>."
+        saved_sessions: >-
+          <prefix><yellow>Остались сохранённые <aqua>черновики</aqua> редактора.
+          Обратите внимание: перезагрузка <red>удалит</red> эти черновики! Чтобы всё равно перезагрузить плагин,
+          <click:suggest_command:'/changelogs reload --force'><red><u>нажмите сюда</u></red></click>.
 icon: # Общие иконки; смена значения здесь меняет иконку везде
   confirm: "<sprite:gui:icon/checkmark>" # Все иконки — это текстуры из ванильного ресурс-пака (атлас gui)
   deny: "<sprite:gui:spectator/close>"
@@ -87,10 +95,16 @@ dialog: # Переводы диалоговых интерфейсов (UI) пл
         <translate:icon.attention> Учтите, что <green>сохранённые</green> сессии <red><b>НЕ СОХРАНЯЮТСЯ</b></red> при <red>перезагрузках</red> сервера!
     error:
       create:
-        internal_error: "<translate:icon.deny> <red>Произошла внутренняя ошибка при попытке опубликовать диалог.\n\nПодробности записаны в консоль сервера."
+        internal_error: |-
+          <translate:icon.deny> <red>Произошла внутренняя ошибка при попытке опубликовать диалог.
+
+          Подробности записаны в консоль сервера.
       edit:
         entry_deleted: "<translate:icon.deny> <red>Запись списка изменений была удалена во время редактирования."
-        internal_error: "<translate:icon.deny> <red>Произошла внутренняя ошибка при попытке применить изменения.\n\nПодробности записаны в консоль сервера."
+        internal_error: |-
+          <translate:icon.deny> <red>Произошла внутренняя ошибка при попытке применить изменения.
+
+          Подробности записаны в консоль сервера.
       no_lines: "<translate:icon.deny> <red>Пожалуйста, укажите хотя бы одну строку изменений."
       add_empty_line: "<translate:icon.deny> <red>Сначала введите содержимое строки."
       no_permission: "<translate:icon.deny> <red>У вас недостаточно прав для выполнения этого действия!"
@@ -119,7 +133,8 @@ dialog: # Переводы диалоговых интерфейсов (UI) пл
       
       <reset><gray>Опубликовал: <white><arg:2></white></gray>
     entry_line: "<gray>- <reset><arg:0>" # Формат строки (добавляет серый дефис в начале)
-    unspecified_author: "<dark_red>Не указан" # Автор по умолчанию
+    # Автор по умолчанию
+    unspecified_author: "<dark_red>Не указан"
     button:
       close: "<translate:icon.confirm> <green>Выход"
     read: "<prefix><translate:icon.confirm> <green>Отмечено как прочитанные: <yellow><arg:0></yellow>!"

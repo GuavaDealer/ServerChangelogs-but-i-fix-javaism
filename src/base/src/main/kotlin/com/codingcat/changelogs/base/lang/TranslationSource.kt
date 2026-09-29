@@ -11,7 +11,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.TranslatableComponent
 import net.kyori.adventure.text.minimessage.MiniMessage
@@ -28,6 +27,9 @@ import java.nio.file.Path
 import java.util.*
 import kotlin.io.path.*
 
+/**
+ * Manages translation stores and MiniMessage localization bundles loaded from YAML files.
+ */
 class TranslationSource(
     private val sourceDirectory: Path,
     private val changelogsMeta: ChangelogsMeta,
@@ -46,9 +48,12 @@ class TranslationSource(
      * Asynchronously reloads all translation files from disk on Dispatchers.IO.
      */
     suspend fun reloadAsync() = withContext(Dispatchers.IO) {
-        reload()
+        this@TranslationSource.reload()
     }
 
+    /**
+     * Synchronously reloads translation stores from disk and registers them to Adventure GlobalTranslator.
+     */
     fun reload() {
         logger.info { "Reloading translation store..." }
         if (!sourceDirectory.exists()) {
@@ -177,14 +182,14 @@ class TranslationSource(
                     else -> throw context.newException("Invalid argument \"${property}\"", args)
                 }
                 Tag.selfClosingInserting(
-                    value?.let(::text) ?: translatable("meta.unknown"),
+                    value?.let(Component::text) ?: translatable("meta.unknown"),
                 )
             }
             .tag("platform") { args, context ->
                 val property = args.popOr("Missing argument for tag \"platform\"").lowerValue()
                 val value: Component = when (property) {
                     "name" -> platformMeta.name
-                    "version" -> text(platformMeta.version)
+                    "version" -> Component.text(platformMeta.version)
                     else -> throw context.newException("Invalid argument \"${property}\"", args)
                 }
                 Tag.selfClosingInserting(value)
@@ -193,6 +198,9 @@ class TranslationSource(
     }
 
     companion object {
+        /**
+         * Creates a namespaced [TranslatableComponent] formatted under this plugin's namespace.
+         */
         fun translatable(
             key: String,
             vararg args: ComponentLike,

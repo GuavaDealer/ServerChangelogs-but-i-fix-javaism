@@ -39,4 +39,3 @@ interface CommandBuilder : BrigadierCommandNode {
 fun PlatformCommandManager.register(builder: CommandBuilder, plugin: ServerChangelogs) {
     this.register(builder.build(plugin), builder.aliases.toPersistentSet())
 }
-

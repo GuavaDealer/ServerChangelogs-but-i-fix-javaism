@@ -4,7 +4,8 @@ import com.codingcat.changelogs.platformapi.audience.PermissionAudienceWrapper
 import com.codingcat.changelogs.platformapi.player.PlatformPlayer
 
 /**
- * Abstraction wrapping an invocation source capable of receiving messages, checking permissions, and identifying an optional executing player.
+ * Abstraction wrapping an invocation source capable of receiving messages,
+ * checking permissions, and identifying an optional executing player.
  */
 interface PlatformCommandSource : PermissionAudienceWrapper {
     /**

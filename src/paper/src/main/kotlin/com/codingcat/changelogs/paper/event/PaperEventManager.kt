@@ -9,9 +9,12 @@ import org.bukkit.Bukkit
 import org.bukkit.event.*
 import org.bukkit.plugin.EventExecutor
 
+/**
+ * Event manager implementation adapting Bukkit/Paper event listeners to platform events.
+ */
 @Suppress("UNCHECKED_CAST")
 object PaperEventManager : PlatformEventManager {
-    private val listenerSet: MutableSet<PlatformMappingListener<*>> = HashSet()
+    private val listenerSet: MutableSet<PlatformMappingListener<*>> = hashSetOf()
     private val eventMappings: PaperEventMappings = PaperEventMappings(PaperPlayerManager)
 
     override fun <T : PlatformEvent> registerListener(eventCls: Class<T>, listener: (T) -> Unit) {
@@ -32,7 +35,7 @@ object PaperEventManager : PlatformEventManager {
     }
 
     override fun unregisterIf(listenerPredicate: (Any) -> Boolean) {
-        val iterator = listenerSet.iterator()
+        val iterator = this.listenerSet.iterator()
         while (iterator.hasNext()) {
             val mappingListener = iterator.next()
             if (listenerPredicate(mappingListener.listener)) {

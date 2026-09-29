@@ -8,16 +8,19 @@ import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import java.util.*
 
+/**
+ * Player manager implementation providing Paper [Player] resolution and wrapping.
+ */
 object PaperPlayerManager : PlatformPlayerManager {
     override val onlinePlayers: ImmutableSet<PlatformPlayer>
-        get() = Bukkit.getOnlinePlayers().map { fromNative(it) }.toImmutableSet()
+        get() = Bukkit.getOnlinePlayers().map { this.fromNative(it) }.toImmutableSet()
 
     override fun getFromUUID(uuid: UUID): PlatformPlayer? {
-        return Bukkit.getPlayer(uuid)?.let { fromNative(it) }
+        return Bukkit.getPlayer(uuid)?.let { this.fromNative(it) }
     }
 
     override fun getFromName(name: String): PlatformPlayer? {
-        return Bukkit.getPlayer(name)?.let { fromNative(it) }
+        return Bukkit.getPlayer(name)?.let { this.fromNative(it) }
     }
 
     @Throws(IllegalArgumentException::class)

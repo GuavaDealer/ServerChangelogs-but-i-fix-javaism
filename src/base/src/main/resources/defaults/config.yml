@@ -1,9 +1,8 @@
-#
-# ---- ServerChangelogs by codingcat2468 ----
-# Translation files can be found in the "lang" directory.
-# The language shown to the player is automatically determined by
-# paper/adventure based on the selected language of the client.
-#
+# ==============================================================================
+# ServerChangelogs Configuration
+# Defines runtime parameters, storage backends, and UI options.
+# Translation files are stored in the "lang" directory.
+# ==============================================================================
 
 # The changelog storage is used to store all server changelogs.
 # Available options:
@@ -18,13 +17,13 @@ database:
   # Database engine: sqlite, mysql, mariadb, postgresql, h2
   type: sqlite
   # Hostname for remote databases
-  host: "localhost"
+  host: localhost
   # Port for remote databases (3306 for MySQL/MariaDB, 5432 for PostgreSQL)
   port: 3306
   # Database or schema name
-  database: "server_changelogs"
+  database: server_changelogs
   # Authentication credentials
-  username: "root"
+  username: root
   password: ""
   # Optional explicit JDBC connection URL (overrides host, port, database if set)
   # jdbc_url: "jdbc:sqlite:changelogs.db"
@@ -43,7 +42,7 @@ date_format: "MM/dd/yyyy"
 
 # The timezone in which the time a changelog was published at will be displayed.
 # This can be a text identifier, such as "Europe/Paris" or a UTC offset specifier like "UTC+1".
-date_timezone: "UTC"
+date_timezone: UTC
 
 # Whether the plugin should register a dedicated /changelog command (not /changelogS).
 # This can be useful if you want a more intuitive experience for players,
