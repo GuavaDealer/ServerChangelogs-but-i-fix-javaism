@@ -4,8 +4,11 @@ import com.codingcat.changelogs.base.ServerChangelogs
 import com.codingcat.changelogs.base.config.PluginConfig
 import com.codingcat.changelogs.base.data.storage.ExposedChangelogStorage
 import com.codingcat.changelogs.base.data.storage.YamlChangelogStorage
+import org.slf4j.LoggerFactory
+import org.slf4j.kotlin.KLogger
+import java.nio.file.Path
 import java.time.Instant
-import java.util.UUID
+import java.util.*
 
 /**
  * Persistence abstraction for storing, updating, reading, and indexing [ChangelogEntry] items.
@@ -164,14 +167,14 @@ interface ChangelogStorage : Iterable<ChangelogEntry> {
         @Throws(IllegalArgumentException::class)
         fun create(
             config: PluginConfig,
-            dataPath: java.nio.file.Path = runCatching { ServerChangelogs.platform.getDataPath() }
-                .getOrElse { java.nio.file.Path.of(".") },
+            dataPath: Path = runCatching { ServerChangelogs.platform.getDataPath() }
+                .getOrElse { Path.of(".") },
         ): ChangelogStorage {
             return when (val identifier = config.changelogStorageType.lowercase()) {
                 "yaml" -> YamlChangelogStorage(dataPath.resolve("_data.yml"))
                 "sqlite", "h2", "mysql", "mariadb", "postgresql", "postgres", "exposed", "jdbc" -> {
                     val logger = runCatching { ServerChangelogs.logger }
-                        .getOrElse { org.slf4j.kotlin.KLogger(org.slf4j.LoggerFactory.getLogger("ChangelogsStorage")) }
+                        .getOrElse { KLogger(LoggerFactory.getLogger("ChangelogsStorage")) }
                     ExposedChangelogStorage(
                         dataPath = dataPath,
                         config = config.databaseConfig.copy(

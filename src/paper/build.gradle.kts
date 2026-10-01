@@ -21,19 +21,32 @@ dependencies {
 }
 
 paperPluginYaml {
-    name = rootProject.name
+    name = "${rootProject.name}-${project.name}"
     main = "${group}.changelogs.paper.PaperChangelogsPlatform"
-    website = project.property("url") as String
-    apiVersion = project.property("minecraft_version_compat").toString()
+    website = project.findProperty("url")?.toString()
+        ?: missingProperty("url")
+    apiVersion = project.findProperty("minecraft_version_compat")?.toString()
+        ?: missingProperty("minecraft_version_compat")
     foliaSupported = true
 
-    authors.addAll("codingcat2468")
+    authors.addAll(
+        project.findProperty("authors")?.toString()?.split(",")
+            ?: emptyList()
+    )
+    contributors.addAll(
+        project.findProperty("contributors")?.toString()?.split(",")
+            ?: emptyList()
+    )
+
     dependencies.server.create("packetevents")
 }
 
 tasks {
     runServer {
-        minecraftVersion(project.property("minecraft_version").toString())
+        minecraftVersion(
+            project.findProperty("minecraft_version")?.toString()
+                ?: missingProperty("minecraft_version")
+        )
         jvmArgs("-Xms1G", "-Xmx1G")
         downloadPlugins {
             modrinth(id = "packetevents", version = "m78nFxYg")

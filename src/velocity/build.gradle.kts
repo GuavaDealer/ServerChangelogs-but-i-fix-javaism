@@ -25,10 +25,14 @@ dependencies {
 velocityPluginJson {
     id = "server-changelogs"
     name = "${rootProject.name}-${project.name}"
-    url = project.findProperty("url")?.toString() ?: missingProperty("url")
+    url = project.findProperty("url")?.toString()
+        ?: missingProperty("url")
 
     main = "${group}.changelogs.velocity.VelocityChangelogsPlatform"
-    authors.addAll("codingcat2468")
+    authors.addAll(
+        project.findProperty("authors")?.toString()?.split(",")
+            ?: emptyList()
+    )
     dependencies.addAll(VelocityPluginJson.Dependency("packetevents", false))
 }
 

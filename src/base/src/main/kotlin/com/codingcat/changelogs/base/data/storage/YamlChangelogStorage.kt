@@ -16,6 +16,7 @@ import java.nio.file.StandardCopyOption
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.path.exists
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
@@ -47,7 +48,7 @@ class YamlChangelogStorage(
     private val lock = Any()
     private val yaml: Yaml = Yaml(configuration = YamlConfiguration(strictMode = false))
     private var cache: MutableList<ChangelogEntry> = mutableListOf()
-    private var playerFirstSeen: MutableMap<UUID, Instant> = java.util.concurrent.ConcurrentHashMap()
+    private var playerFirstSeen: MutableMap<UUID, Instant> = ConcurrentHashMap()
 
     override val displayName: String = "YAML File"
 
@@ -55,7 +56,7 @@ class YamlChangelogStorage(
         synchronized(lock) {
             if (!filePath.exists()) {
                 this.cache = mutableListOf()
-                this.playerFirstSeen = java.util.concurrent.ConcurrentHashMap()
+                this.playerFirstSeen = ConcurrentHashMap()
                 this.saveLocked()
                 return
             }
@@ -73,7 +74,7 @@ class YamlChangelogStorage(
                     runCatching {
                         UUID.fromString(uuidStr) to DateTimeFormatter.ISO_INSTANT.parse(timeStr, Instant::from)
                     }.getOrNull()
-                }.toMap(java.util.concurrent.ConcurrentHashMap())
+                }.toMap(ConcurrentHashMap())
             } catch (e: Exception) {
                 throw RuntimeException("Failed to load changelog data from ${filePath}", e)
             }
